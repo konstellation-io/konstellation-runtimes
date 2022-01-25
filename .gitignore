@@ -127,3 +127,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Makefile generated files
+**/.hadolint.yml
+!.hadolint.yml
