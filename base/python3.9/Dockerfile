@@ -1,15 +1,16 @@
 FROM ubuntu:18.04
+LABEL maintainer "Intelygenz - Konstellation Team"
 ARG NB_USER="coder"
 ARG NB_UID="1000"
 ARG NB_GID="1000"
 ARG VERSION=2.5.0
-ENV LANG C.UTF-8
-ENV KERNEL_LANGUAGE python
+ARG PIP_TARGET_FOLDER=/kernel/lib/python/site-packages
+ENV LANG=C.UTF-8
+ENV KERNEL_LANGUAGE=python
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 USER root
 RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
     PIP_INSTALL="python -m pip --no-cache-dir install --upgrade" && \
-    GIT_CLONE="git clone --depth 10" && \
     rm -rf /var/lib/apt/lists/* \
            /etc/apt/sources.list.d/cuda.list \
            /etc/apt/sources.list.d/nvidia-ml.list && \
@@ -30,7 +31,10 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
         git \
         libssl-dev \
         curl \
+        libaio1 \
+        libffi-dev \
         libsm6 \
+        libltdl7 \
         libxext-dev \
         libxrender1 \
         netcat \
@@ -60,7 +64,7 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
         python3.9-distutils \
         python3-distutils-extra \
         && \
-    wget -O ~/get-pip.py \
+    curl -o ~/get-pip.py \
         https://bootstrap.pypa.io/get-pip.py && \
     python3.9 ~/get-pip.py && \
     ln -s /usr/bin/python3.9 /usr/local/bin/python3 && \
@@ -75,6 +79,7 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
         notebook \
         jupyterhub \
         jupyterlab \
+        pipenv \
         && \
 # ==================================================================
 # Enterprise gateway kernel bootstrap & cleanup
@@ -90,10 +95,17 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
     ldconfig && \
     apt-get clean && \
     apt-get autoremove && \
-    rm -rf /var/lib/apt/lists/* /tmp/* ~/*
+    rm -rf /var/lib/apt/lists/* /tmp/* ~/* && \
+# ==================================================================
+# make PTHONPATH folder for Jupyter kernels
+# ------------------------------------------------------------------
+    mkdir -p ${PIP_TARGET_FOLDER} && \
+    chown -R ${NB_USER}:${NB_USER} ${PIP_TARGET_FOLDER}
+
 # ==================================================================
 # Command
 # ------------------------------------------------------------------
 USER ${NB_USER}
 ENV PATH=/home/${NB_USER}/.local/bin:$PATH
-CMD /usr/local/bin/bootstrap-kernel.sh
+ENV PIPENV_VENV_IN_PROJECT=1
+CMD ["/usr/local/bin/bootstrap-kernel.sh"]
