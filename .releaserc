@@ -1,5 +1,5 @@
 {
-  "branches": ["main"],
+  "branches": ["feat/base_images"],
   "extends": "semantic-release-monorepo",
   "plugins": [
     "@semantic-release/commit-analyzer",
