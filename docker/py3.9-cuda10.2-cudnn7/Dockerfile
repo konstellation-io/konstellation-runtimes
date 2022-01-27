@@ -97,7 +97,7 @@ RUN $PIP_INSTALL \
     chmod 0755 /usr/local/bin/bootstrap-kernel.sh && \
     chown -R ${NB_USER}:${NB_USER} /usr/local/bin/kernel-launchers && \
 # ==================================================================
-# make PTHONPATH folder for Jupyter kernels
+# make PYTHONPATH folder for Jupyter kernels
 # ------------------------------------------------------------------
     mkdir -p ${PIP_TARGET_FOLDER} && \
     chown -R ${NB_USER}:${NB_USER} ${PIP_TARGET_FOLDER}
