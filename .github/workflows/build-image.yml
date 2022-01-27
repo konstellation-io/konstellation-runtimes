@@ -22,9 +22,9 @@ jobs:
         DOCKERFILE_FOLDER=${TAG%-v*}
         IMAGE_BASE_TAG=${DOCKERFILE_FOLDER#py}
         IMAGE_TAG=${TAG##*-v}
-        echo ::set-output name=dockerfile_folder::$(echo ${DOCKERFILE_FOLDER})
-        echo ::set-output name=image_base_tag::$(echo ${IMAGE_BASE_TAG})
-        echo ::set-output name=image_tag::$(echo ${IMAGE_TAG})
+        echo ::set-output name=dockerfile_folder::${DOCKERFILE_FOLDER}
+        echo ::set-output name=image_base_tag::${IMAGE_BASE_TAG}
+        echo ::set-output name=image_tag::${IMAGE_TAG}
         
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v1
@@ -62,5 +62,3 @@ jobs:
       run: |
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
-      
-      
