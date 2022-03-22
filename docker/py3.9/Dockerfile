@@ -7,6 +7,8 @@ ARG VERSION=2.5.0
 ARG PIP_TARGET_FOLDER=/kernel/lib/python/site-packages
 ARG APT_INSTALL="apt-get install -y --no-install-recommends"
 ARG PIP_INSTALL="python -m pip --no-cache-dir install --upgrade"
+ARG PROTOC_VERSION=3.19.4
+ARG KST_CLI_VERSION=1.0-alpha.4
 ENV LANG=C.UTF-8
 ENV KERNEL_LANGUAGE=python
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -95,6 +97,20 @@ RUN $PIP_INSTALL \
 # ------------------------------------------------------------------
     mkdir -p ${PIP_TARGET_FOLDER} && \
     chown -R ${NB_USER}:${NB_USER} ${PIP_TARGET_FOLDER}
+# ==================================================================
+# Install tools
+# ------------------------------------------------------------------    
+RUN \
+    # protoc compiler
+    curl -o protoc.zip -LO "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip" && \
+    unzip -o protoc.zip -d /usr/local bin/protoc && \
+    chmod +x /usr/local/bin/protoc && \
+    rm -f protoc.zip && \
+    # konstellation KLI
+    curl -o kli.tar.gz -LO "https://github.com/konstellation-io/kli/releases/download/v${KST_CLI_VERSION}/kli_${KST_CLI_VERSION}_linux_amd64.tar.gz" && \
+    tar xvf kli.tar.gz && \
+    mv kli_${KST_CLI_VERSION}_linux_amd64/bin/kli /usr/local/bin && \
+    rm -f kli.tar.gz
 # ==================================================================
 # config & cleanup
 # ------------------------------------------------------------------
