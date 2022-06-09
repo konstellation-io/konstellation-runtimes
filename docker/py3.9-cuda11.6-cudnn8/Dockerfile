@@ -13,10 +13,7 @@ ENV LANG=C.UTF-8
 ENV KERNEL_LANGUAGE=python
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 USER root
-RUN rm -rf /var/lib/apt/lists/* \
-    /etc/apt/sources.list.d/cuda.list \
-    /etc/apt/sources.list.d/nvidia-ml.list && \
-    apt-get update && \
+RUN apt-get update && \
     # ==================================================================
     # Create NB_USER user and group
     # ------------------------------------------------------------------
@@ -29,6 +26,7 @@ RUN rm -rf /var/lib/apt/lists/* \
     build-essential \
     apt-utils \
     ca-certificates \
+    cuda-nvcc-11-6 \
     wget \
     git \
     libssl-dev \
@@ -60,18 +58,11 @@ RUN rm -rf /var/lib/apt/lists/* \
     echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
     locale-gen && \
     # ==================================================================
-    # Nvidia & Python repositories
+    # Python
     # ------------------------------------------------------------------
-    wget -O /tmp/cuda-keyring_1.0-1_all.deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/cuda-keyring_1.0-1_all.deb && \
-    DEBIAN_FRONTEND=noninteractive $APT_INSTALL /tmp/cuda-keyring_1.0-1_all.deb && \
     add-apt-repository ppa:deadsnakes/ppa && \
     apt-get update && \
-
-    # ==================================================================
-    # Nvidia Cuda Toolkit & Python 
-    # ------------------------------------------------------------------
     DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
-    nvidia-cuda-toolkit \
     python3.9 \
     python3.9-dev \
     python3.9-distutils \
