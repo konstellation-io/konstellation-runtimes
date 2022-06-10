@@ -27,6 +27,7 @@ RUN apt-get update && \
     apt-utils \
     ca-certificates \
     cuda-nvcc-11-6 \
+    libcusparse-dev-11-6 \
     wget \
     git \
     libssl-dev \
