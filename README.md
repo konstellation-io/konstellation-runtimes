@@ -7,6 +7,7 @@ Konstellation runtime images to be used in KDL and KRE
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
+- [Making a new runtime available](#making-a-new-runtime-available)
 - [Image bases](#image-bases)
 - [Contributing](#contributing)
   - [Pull requests](#pull-requests)
@@ -15,6 +16,20 @@ Konstellation runtime images to be used in KDL and KRE
 
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+## Making a new runtime available
+
+After successfully building a new runtime image, you can add it to the list of available runtime images in KAI Lab adding a new document to the `kdl` MongoDB database, under the `runtimes` collection, following the schema below.
+
+```json
+{
+  "name":"",
+  "desc":"Description",
+  "labels":["Python 3.9", "Ubuntu 18.0.4", "GPU", "CUDA 11.6.1"],
+  "docker_image":"konstellation/kdl-py",
+  "docker_tag":"3.9-cuda11.6-cudnn8-devel-1.0.2"
+}
+```
 
 ## Image bases
 
@@ -30,6 +45,8 @@ So, meanwhile you're not sure which image you should use, you can follow this ru
 
 - If you're not sure of what runtime to choose, choose the runtime version (the one that is not labeled with "Development").
 - If you need `nvcc` or whichever compiler tools, choose the runtime labeled "Development".
+
+![](./assets/runtimes-screenshot.png)
 
 ## Contributing
 
