@@ -131,3 +131,7 @@ dmypy.json
 # Makefile generated files
 **/.hadolint.yml
 !.hadolint.yml
+
+# IDE stuff
+.idea
+.vscode
