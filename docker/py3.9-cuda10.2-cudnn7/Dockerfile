@@ -30,7 +30,6 @@ RUN rm -rf /var/lib/apt/lists/* \
         apt-utils \
         ca-certificates \
         wget \
-        git \
         libssl-dev \
         curl \
         libaio1 \
@@ -60,11 +59,13 @@ RUN rm -rf /var/lib/apt/lists/* \
     echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
     locale-gen && \
 # ==================================================================
-# python
+# python and git
 # ------------------------------------------------------------------
     add-apt-repository ppa:deadsnakes/ppa && \
+    add-apt-repository ppa:git-core/ppa && \
     apt-get update && \
     DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
+        git \
         python3.9 \
         python3.9-dev \
         python3.9-distutils \
