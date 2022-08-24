@@ -1,0 +1,17 @@
+title = "gitleaks config"
+
+[allowlist]
+description = "global allow lists"
+paths = [
+    '''.gitleaks.toml''',
+    '''(.*?)(jpg|gif|doc|docx|zip|xls|pdf|bin|svg|socket)$''',
+    '''!.external_modules''',
+		'''!.terrform''',
+		'''!.tflind.d''',
+		'''\.''',
+		'''.github_workflows''',
+		'''helm''',
+		'''helmfile.(yml|yaml|lock)$''',
+		'''iac''',
+		'''iac/terraform''',
+]
