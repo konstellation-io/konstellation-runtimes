@@ -14,63 +14,64 @@ ENV KERNEL_LANGUAGE=python
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 USER root
 RUN apt-get update && \
-    # ==================================================================
-    # Create NB_USER user and group
-    # ------------------------------------------------------------------
+# ==================================================================
+# Create NB_USER user and group
+# ------------------------------------------------------------------
     groupadd -g "${NB_GID}" "${NB_USER}" && \
     useradd -l -m -s /bin/bash -N -g "${NB_GID}" -u "${NB_UID}" "${NB_USER}" && \
-    # ==================================================================
-    # tools
-    # ------------------------------------------------------------------
+# ==================================================================
+# tools
+# ------------------------------------------------------------------
     DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
-    build-essential \
-    apt-utils \
-    ca-certificates \
-    cuda-nvcc-11-6 \
-    libcusparse-dev-11-6 \
-    wget \
-    git \
-    libssl-dev \
-    curl \
-    libaio1 \
-    libffi-dev \
-    libgl1-mesa-glx \
-    libsm6 \
-    libltdl7 \
-    libllvm-10-ocaml-dev \
-    llvm-10 \
-    llvm-10-dev \
-    llvm-10-runtime \
-    llvm-10-tools \
-    libxext-dev \
-    libxrender1 \
-    netcat \
-    openssh-client \
-    python3-dev \
-    software-properties-common \
-    tzdata \
-    unzip \
-    cmake \
-    locales \
-    && \
-    # ==================================================================
-    # Set locale
-    # ------------------------------------------------------------------
+        build-essential \
+        apt-utils \
+        ca-certificates \
+        cuda-nvcc-11-6 \
+        libcusparse-dev-11-6 \
+        wget \
+        libssl-dev \
+        curl \
+        libaio1 \
+        libffi-dev \
+        libgl1-mesa-glx \
+        libsm6 \
+        libltdl7 \
+        libllvm-10-ocaml-dev \
+        llvm-10 \
+        llvm-10-dev \
+        llvm-10-runtime \
+        llvm-10-tools \
+        libxext-dev \
+        libxrender1 \
+        netcat \
+        openssh-client \
+        python3-dev \
+        software-properties-common \
+        tzdata \
+        unzip \
+        cmake \
+        locales \
+        && \
+# ==================================================================
+# Set locale
+# ------------------------------------------------------------------
     echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
     locale-gen && \
-    # ==================================================================
-    # Python
-    # ------------------------------------------------------------------
+# ==================================================================
+# python and git
+# ------------------------------------------------------------------
     add-apt-repository ppa:deadsnakes/ppa && \
+    add-apt-repository ppa:git-core/ppa && \
     apt-get update && \
     DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
-    python3.9 \
-    python3.9-dev \
-    python3.9-distutils \
-    python3-distutils-extra \
+        git \
+        python3.9 \
+        python3.9-dev \
+        python3.9-distutils \
+        python3-distutils-extra \
     && \
     curl -o ~/get-pip.py \
-    https://bootstrap.pypa.io/get-pip.py && \
+        https://bootstrap.pypa.io/get-pip.py && \
     python3.9 ~/get-pip.py && \
     ln -s /usr/bin/python3.9 /usr/local/bin/python3 && \
     ln -s /usr/bin/python3.9 /usr/local/bin/python
@@ -78,28 +79,28 @@ RUN apt-get update && \
 # python libraries
 # ------------------------------------------------------------------
 RUN $PIP_INSTALL \
-    setuptools \
-    wheel \
-    && \
+        setuptools \
+        wheel \
+        && \
     $PIP_INSTALL \
-    pycrypto \
-    future \
-    notebook \
-    jupyterhub \
-    jupyterlab \
-    pipenv \
-    && \
-    # ==================================================================
-    # Enterprise gateway kernel bootstrap & cleanup
-    # ------------------------------------------------------------------
+        pycrypto \
+        future \
+        notebook \
+        jupyterhub \
+        jupyterlab \
+        pipenv \
+        && \
+# ==================================================================
+# Enterprise gateway kernel bootstrap & cleanup
+# ------------------------------------------------------------------
     curl -L https://github.com/jupyter/enterprise_gateway/releases/download/v${VERSION}/jupyter_enterprise_gateway_kernel_image_files-${VERSION}.tar.gz | \
     tar -xz -C /usr/local/bin && \
     chown ${NB_USER}:${NB_USER} /usr/local/bin/bootstrap-kernel.sh && \
     chmod 0755 /usr/local/bin/bootstrap-kernel.sh && \
     chown -R ${NB_USER}:${NB_USER} /usr/local/bin/kernel-launchers && \
-    # ==================================================================
-    # make PYTHONPATH folder for Jupyter kernels
-    # ------------------------------------------------------------------
+# ==================================================================
+# make PYTHONPATH folder for Jupyter kernels
+# ------------------------------------------------------------------
     mkdir -p ${PIP_TARGET_FOLDER} && \
     chown -R ${NB_USER}:${NB_USER} ${PIP_TARGET_FOLDER}
 # ==================================================================
