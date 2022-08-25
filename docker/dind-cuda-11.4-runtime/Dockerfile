@@ -36,3 +36,5 @@ EXPOSE 2375 2376
 
 ENTRYPOINT ["dockerd-entrypoint.sh"]
 CMD []
+
+#checkov:skip=CKV_DOCKER_3: "Ensure that a user for the container has been created"

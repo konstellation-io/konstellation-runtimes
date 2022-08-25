@@ -3,62 +3,62 @@ name: Publish Docker image
 on:
   push:
     tags:
-      - '**'
+      - "**"
 
 jobs:
   new-release:
     runs-on: ubuntu-20.04
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-      with:
-        persist-credentials: false
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          persist-credentials: false
 
-    - name: Get image tag and Dockerfile folder
-      id: tag-folder
-      run: |
-        TAG=${GITHUB_REF/refs\/tags\//}
-        DOCKERFILE_FOLDER=${TAG%-v*}
-        IMAGE_BASE_TAG=${DOCKERFILE_FOLDER#py}
-        IMAGE_TAG=${TAG##*-v}
-        echo ::set-output name=dockerfile_folder::${DOCKERFILE_FOLDER}
-        echo ::set-output name=image_base_tag::${IMAGE_BASE_TAG}
-        echo ::set-output name=image_tag::${IMAGE_TAG}
+      - name: Get image tag and Dockerfile folder
+        id: tag-folder
+        run: |
+          TAG=${GITHUB_REF/refs\/tags\//}
+          DOCKERFILE_FOLDER=${TAG%-v*}
+          IMAGE_BASE_TAG=${DOCKERFILE_FOLDER#py}
+          IMAGE_TAG=${TAG##*-v}
+          echo ::set-output name=dockerfile_folder::${DOCKERFILE_FOLDER}
+          echo ::set-output name=image_base_tag::${IMAGE_BASE_TAG}
+          echo ::set-output name=image_tag::${IMAGE_TAG}
 
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v1
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
 
-    - name: Cache Docker layers
-      uses: actions/cache@v2
-      with:
-        path: /tmp/.buildx-cache
-        key: ${{ runner.os }}-buildx-${{ github.sha }}
-        restore-keys: ${{ runner.os }}-buildx-
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: ${{ runner.os }}-buildx-
 
-    - name: Login to DockerHub Registry
-      uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.docker_username }}
-        password: ${{ secrets.docker_token }}
+      - name: Login to DockerHub Registry
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.docker_username }}
+          password: ${{ secrets.docker_token }}
 
-    - name: Push to Docker Hub
-      uses: docker/build-push-action@v2
-      with:
-        context: ./docker/${{ steps.tag-folder.outputs.dockerfile_folder }}
-        file: ./docker/${{ steps.tag-folder.outputs.dockerfile_folder }}/Dockerfile
-        platforms: linux/amd64
-        push: true
-        tags: |
-          konstellation/kdl-py:${{ steps.tag-folder.outputs.image_base_tag }}
-          konstellation/kdl-py:${{ steps.tag-folder.outputs.image_base_tag }}-${{ steps.tag-folder.outputs.image_tag }}
-        cache-from: type=local,src=/tmp/.buildx-cache
-        cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+      - name: Push to Docker Hub
+        uses: docker/build-push-action@v2
+        with:
+          context: ./docker/${{ steps.tag-folder.outputs.dockerfile_folder }}
+          file: ./docker/${{ steps.tag-folder.outputs.dockerfile_folder }}/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: |
+            konstellation/kdl-py:${{ steps.tag-folder.outputs.image_base_tag }}
+            konstellation/kdl-py:${{ steps.tag-folder.outputs.image_base_tag }}-${{ steps.tag-folder.outputs.image_tag }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
 
-    - name: Move cache
-      run: |
+      - name: Move cache
+        run: |
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache

@@ -1,12 +1,12 @@
-# soft-fail: true
-# compact: true
-# create-baseline: false
-# quiet: true
-# evaluate-variables: true
+soft-fail: false
+compact: true
+create-baseline: false
+quiet: true
+evaluate-variables: true
 directory:
   - .github/workflows
   - docker
-# framework:
-# - all
+framework:
+  - all
 skip-check:
   - CKV_DOCKER_2 # Ensure that HEALTHCHECK instructions have been added to container images

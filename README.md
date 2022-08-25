@@ -14,7 +14,6 @@ Konstellation runtime images to be used in KDL and KRE
   - [Semantic release](#semantic-release)
   - [Branching conventions](#branching-conventions)
 
-
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Making a new runtime available
@@ -23,11 +22,11 @@ After successfully building a new runtime image, you can add it to the list of a
 
 ```json
 {
-  "name":"",
-  "desc":"Description",
-  "labels":["Python 3.9", "Ubuntu 18.0.4", "GPU", "CUDA 11.6.1"],
-  "docker_image":"konstellation/kdl-py",
-  "docker_tag":"3.9-cuda11.6-cudnn8-devel-1.0.2"
+  "name": "",
+  "desc": "Description",
+  "labels": ["Python 3.9", "Ubuntu 18.0.4", "GPU", "CUDA 11.6.1"],
+  "docker_image": "konstellation/kdl-py",
+  "docker_tag": "3.9-cuda11.6-cudnn8-devel-1.0.2"
 }
 ```
 
@@ -57,6 +56,7 @@ Accepted pull requests for Docker image updates could only contain changes for a
 Example:
 
 Given the following project folder structure:
+
 ```
 docker\
   py3.9\
@@ -66,6 +66,7 @@ docker\
     Dockerfile
     ...
 ```
+
 Pull requests containing changes for both `docker/py3.9` and `docker/py3.10` folders won't be accepted because that could cause the `New Release` workflow to fail.
 
 ### Semantic release
@@ -80,15 +81,15 @@ If this approach is not followed, the automation won't upgrade the version and p
 
 Each Dockerfile modification branch should be named like follows:
 
-[action]/[docker_image]_[message]
+[action]/[docker_image]\_[message]
 
-+ **action**: The available actions are fix, refactor, feature and docs.
-+ **docker_image**: The name of the folder inside `docker/` that represents a Dockerfile.
-+ **message**: A general and short message that explain the task or a small title.
+- **action**: The available actions are fix, refactor, feature and docs.
+- **docker_image**: The name of the folder inside `docker/` that represents a Dockerfile.
+- **message**: A general and short message that explain the task or a small title.
 
 For non Dockerfile modification branches:
 
 [action]/[message]
 
-+ **action**: The available actions are fix, refactor, feature and docs.
-+ **message**: A general and short message that explain the task or a small title.
+- **action**: The available actions are fix, refactor, feature and docs.
+- **message**: A general and short message that explain the task or a small title.
