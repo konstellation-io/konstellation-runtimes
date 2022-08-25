@@ -1,5 +1,9 @@
 FROM nvidia/cuda:11.4.2-runtime-ubuntu20.04
 
+LABEL maintainer "Intelygenz - Konstellation Team"
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 RUN apt-get update && \
     apt-get install -y \
         apt-utils \
@@ -38,3 +42,4 @@ ENTRYPOINT ["dockerd-entrypoint.sh"]
 CMD []
 
 #checkov:skip=CKV_DOCKER_3: "Ensure that a user for the container has been created"
+#checkov:skip=CKV_DOCKER_4: "Ensure that COPY is used instead of ADD in Dockerfiles"
