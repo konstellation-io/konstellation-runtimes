@@ -17,21 +17,21 @@ jobs:
         - docker/py3.9-cuda11.4-cudnn8
         - docker/py3.9-cuda11.6-cudnn8-devel
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-      with:
-        persist-credentials: false
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          persist-credentials: false
 
-    - name: Install nodejs
-      uses: actions/setup-node@v2
-      with:
-        node-version: '14'
+      - name: Install nodejs
+        uses: actions/setup-node@v2
+        with:
+          node-version: "14"
 
-    - name: Run semantic release
-      run: |
-        cp ci-utils/.releaserc ${{ matrix.image-folder }}
-        cd ${{ matrix.image-folder }}
-        npm install semantic-release@19.0.2 semantic-release-monorepo@7.0.5
-        npx semantic-release
-      env:
-        GITHUB_TOKEN: ${{ secrets.PAT }}
+      - name: Run semantic release
+        run: |
+          cp ci-utils/.releaserc ${{ matrix.image-folder }}
+          cd ${{ matrix.image-folder }}
+          npm install semantic-release@19.0.2 semantic-release-monorepo@7.0.5
+          npx semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}
