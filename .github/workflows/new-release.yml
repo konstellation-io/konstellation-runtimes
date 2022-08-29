@@ -36,5 +36,6 @@ jobs:
             "@semantic-release/commit-analyzer"
             "@semantic-release/release-notes-generator"
             "@semantic-release/github"
+          working_directory: "docker/${{ matrix.image-folder }}"
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
