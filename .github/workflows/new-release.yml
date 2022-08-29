@@ -31,8 +31,9 @@ jobs:
           branch: main
           extends: |
             semantic-release-monorepo
-          working_directory: "docker/${{ matrix.image-folder }}"
           extra_plugins: |
+            "@semantic-release/commit-analyzer"
+            "@semantic-release/release-notes-generator"
             "@semantic-release/github"
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
