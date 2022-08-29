@@ -11,13 +11,13 @@ jobs:
     strategy:
       matrix:
         image-folder:
+          - dind-cuda-11.4-runtime
           - py3.9
           - py3.9-cuda10.2-cudnn7
           - py3.9-cuda11.6-cudnn8
           - py3.9-cuda11.4-cudnn8
           - py3.9-cuda11.6-cudnn8-devel
-          - arc-poc-gpu
-          - dind-cuda-11.4-runtime
+
     steps:
       - name: Checkout
         uses: actions/checkout@v3
