@@ -1,3 +1,12 @@
 {
-  "name": "dind-cuda-11.4-runtime"
+  "name": "dind-cuda-11.4-runtime",
+  "release": {
+    "extends": "semantic-release-monorepo",
+    "branches": "main",
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      "@semantic-release/github"
+    ]
+  }
 }
