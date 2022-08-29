@@ -1,4 +1,5 @@
 FROM nvidia/cuda:11.4.2-runtime-ubuntu20.04
+#checkov:skip=CKV_DOCKER_2: "Ensure that HEALTHCHECK instructions have been added to container images"
 
 LABEL maintainer "Intelygenz - Konstellation Team"
 

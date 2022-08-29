@@ -1,4 +1,5 @@
 FROM nvidia/cuda:11.6.1-cudnn8-runtime-ubuntu18.04
+#checkov:skip=CKV_DOCKER_2: "Ensure that HEALTHCHECK instructions have been added to container images"
 LABEL maintainer "Intelygenz - Konstellation Team"
 ARG NB_USER="coder"
 ARG NB_UID="1000"
