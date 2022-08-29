@@ -17,6 +17,7 @@ jobs:
           - py3.9-cuda11.4-cudnn8
           - py3.9-cuda11.6-cudnn8
           - py3.9-cuda11.6-cudnn8-devel
+
     steps:
       - name: Checkout
         uses: actions/checkout@v3
