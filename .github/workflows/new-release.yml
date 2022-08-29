@@ -14,8 +14,8 @@ jobs:
           - dind-cuda-11.4-runtime
           - py3.9
           - py3.9-cuda10.2-cudnn7
-          - py3.9-cuda11.6-cudnn8
           - py3.9-cuda11.4-cudnn8
+          - py3.9-cuda11.6-cudnn8
           - py3.9-cuda11.6-cudnn8-devel
 
     steps:
@@ -32,10 +32,9 @@ jobs:
           branch: main
           extends: |
             semantic-release-monorepo
-          working_directory: "docker/${{ matrix.image-folder }}"
           extra_plugins: |
-            "@semantic-release/commit-analyzer",
-            "@semantic-release/release-notes-generator",
+            "@semantic-release/commit-analyzer"
+            "@semantic-release/release-notes-generator"
             "@semantic-release/github"
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
