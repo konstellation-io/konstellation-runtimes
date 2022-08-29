@@ -2,11 +2,12 @@ soft-fail: false
 compact: true
 create-baseline: false
 quiet: true
+download-external-modules: true
+external-modules-download-path: .external_modules
+run-all-external-checks: true
 evaluate-variables: true
 directory:
   - .github/workflows
   - docker
 framework:
   - all
-skip-check:
-  - CKV_DOCKER_2 # Ensure that HEALTHCHECK instructions have been added to container images
