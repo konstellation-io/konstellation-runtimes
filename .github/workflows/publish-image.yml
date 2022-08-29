@@ -46,7 +46,7 @@ jobs:
           password: ${{ secrets.docker_token }}
 
       - name: Push to Docker Hub
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
           context: ./docker/${{ steps.tag-folder.outputs.dockerfile_folder }}
           file: ./docker/${{ steps.tag-folder.outputs.dockerfile_folder }}/Dockerfile
