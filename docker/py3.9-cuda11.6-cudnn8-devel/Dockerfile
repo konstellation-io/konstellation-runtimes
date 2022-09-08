@@ -28,7 +28,6 @@ RUN apt-get update && \
     apt-utils \
     ca-certificates \
     wget \
-    git \
     libssl-dev \
     curl \
     libaio1 \
@@ -61,8 +60,10 @@ RUN apt-get update && \
     # Python
     # ------------------------------------------------------------------
     add-apt-repository ppa:deadsnakes/ppa && \
+    add-apt-repository ppa:git-core/ppa && \
     apt-get update && \
     DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
+    git \
     python3.9 \
     python3.9-dev \
     python3.9-distutils \
