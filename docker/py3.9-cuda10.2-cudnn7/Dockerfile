@@ -76,7 +76,12 @@ RUN rm -rf /var/lib/apt/lists/* \
         https://bootstrap.pypa.io/get-pip.py && \
     python3.9 ~/get-pip.py && \
     ln -s /usr/bin/python3.9 /usr/local/bin/python3 && \
-    ln -s /usr/bin/python3.9 /usr/local/bin/python
+    ln -s /usr/bin/python3.9 /usr/local/bin/python && \
+    # ==================================================================
+    # minio client
+    # ------------------------------------------------------------------
+    curl -o /usr/local/bin/mc -L "https://dl.min.io/client/mc/release/linux-amd64/mc" && \
+    chmod +x /usr/local/bin/mc
 # ==================================================================
 # python libraries
 # ------------------------------------------------------------------
