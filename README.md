@@ -49,29 +49,9 @@ So, meanwhile you're not sure which image you should use, you can follow this ru
 
 ## Contributing
 
-### Pull requests
-
-Accepted pull requests for Docker image updates could only contain changes for a single image.
-
-Example:
-
-Given the following project folder structure:
-
-```
-docker\
-  py3.9\
-    Dockerfile
-    ...
-  py3.10\
-    Dockerfile
-    ...
-```
-
-Pull requests containing changes for both `docker/py3.9` and `docker/py3.10` folders won't be accepted because that could cause the `New Release` workflow to fail.
-
 ### Semantic release
 
-This project follows [Angular commit guidelines](https://github.com/angular/angular.js/blob/master/DEVELOPERS.md#-git-commit-guidelines) for commits because [semantic release](https://github.com/semantic-release/semantic-release) in conjunction with [semantic-release-monorepo](https://github.com/pmowrer/semantic-release-monorepo) is used, so commits that follow the styles message could upgrade the version automatically.
+This project follows [Angular commit guidelines](https://github.com/angular/angular.js/blob/master/DEVELOPERS.md#-git-commit-guidelines) for commits because [multi-semantic-release](https://github.com/qiwi/multi-semantic-release) is used, so commits that follow this message style could upgrade images version automatically.
 
 **CAUTION**:
 

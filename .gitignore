@@ -138,3 +138,6 @@ dmypy.json
 
 # Reports
 results-package.json.json
+
+# node modules
+node_modules/
