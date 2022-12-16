@@ -8,34 +8,20 @@ on:
 jobs:
   new-release:
     runs-on: ubuntu-20.04
-    strategy:
-      matrix:
-        image-folder:
-          - dind-cuda-11.4-runtime
-          - py3.9
-          - py3.9-cuda10.2-cudnn7
-          - py3.9-cuda11.4-cudnn8
-          - py3.9-cuda11.6-cudnn8
-          - py3.9-cuda11.6-cudnn8-devel
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          persist-credentials: false
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        persist-credentials: false
 
-      - name: Semantic Release
-        uses: cycjimmy/semantic-release-action@v3
-        id: semantic
-        with:
-          semantic_version: 19
-          branch: main
-          extends: |
-            semantic-release-monorepo
-          extra_plugins: |
-            "@semantic-release/commit-analyzer"
-            "@semantic-release/release-notes-generator"
-            "@semantic-release/github"
-          working_directory: "docker/${{ matrix.image-folder }}"
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT }}
+    - name: Install nodejs
+      uses: actions/setup-node@v2
+      with:
+        node-version: '16'
+
+    - name: Run semantic release
+      run: |
+        npm install
+        npx multi-semantic-release
+      env:
+        GITHUB_TOKEN: ${{ secrets.PAT }}
