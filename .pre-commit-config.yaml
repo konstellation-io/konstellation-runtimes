@@ -39,7 +39,7 @@ repos:
         args: [--config=.hadolint.yaml]
 
   - repo: https://github.com/bridgecrewio/checkov.git
-    rev: "2.2.154"
+    rev: "2.2.279"
     hooks:
       - id: checkov
         files: ""
@@ -53,7 +53,7 @@ repos:
           - hook-config=--config .gitleaks.toml
 
   - repo: https://github.com/gitguardian/ggshield
-    rev: v1.14.1
+    rev: v1.14.2
     hooks:
       - id: ggshield
         language_version: python3

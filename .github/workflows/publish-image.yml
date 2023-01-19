@@ -5,6 +5,10 @@ on:
     tags:
       - "**"
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   new-release:
     runs-on: ubuntu-20.04
