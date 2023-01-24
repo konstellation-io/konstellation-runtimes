@@ -54,7 +54,7 @@ RUN rm -rf /var/lib/apt/lists/* \
     echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
     locale-gen && \
     # ==================================================================
-    # python and git
+    # python, git
     # ------------------------------------------------------------------
     add-apt-repository ppa:deadsnakes/ppa && \
     add-apt-repository ppa:git-core/ppa && \
@@ -76,12 +76,23 @@ RUN rm -rf /var/lib/apt/lists/* \
     # ------------------------------------------------------------------
     curl -sL https://deb.nodesource.com/setup_16.x -o /tmp/nodesource_setup.sh && \
     bash /tmp/nodesource_setup.sh && \
-    apt-get install nodejs=16.19.0-deb-1nodesource1 -y && \
+    apt-get install nodejs=16.19.0-deb-1nodesource1 -y
+
+COPY dvcorg-cml-0.18.17.tgz /tmp/dvcorg-cml-0.18.17.tgz
+
+# Split apt update stages to avoid cache invalidation
+RUN \
     # ==================================================================
     # minio client
     # ------------------------------------------------------------------
     curl -o /usr/local/bin/mc -L "https://dl.min.io/client/mc/release/linux-amd64/mc" && \
-    chmod +x /usr/local/bin/mc
+    chmod +x /usr/local/bin/mc && \
+    # ==================================================================
+    # cml
+    # ------------------------------------------------------------------
+    npm install --global /tmp/dvcorg-cml-0.18.17.tgz
+    # curl -o /usr/local/bin/cml -L "https://github.com/iterative/cml/releases/download/v0.18.17/cml-linux-x64" && \
+    # chmod +x /usr/local/bin/cml
 # ==================================================================
 # python libraries
 # ------------------------------------------------------------------
