@@ -59,7 +59,7 @@ jobs:
         id: docker_image_metadata
         uses: docker/metadata-action@v4
         with:
-          images: "docker.io/konstellation/${{ github.event.repository.name }}"
+          images: "docker.io/konstellation/kdl-py:${{ steps.tag-folder.outputs.image_tag }}"
           flavor: latest=true
           tags: |
             type=schedule
@@ -94,7 +94,7 @@ jobs:
 
       - name: Sign image with Cosign
         env:
-          TAGS: ${{ steps.docker_image_metadata.outputs.tags }}
+          TAGS: konstellation/kdl-py:${{ steps.tag-folder.outputs.image_base_tag }} konstellation/kdl-py:${{ steps.tag-folder.outputs.image_base_tag }}-${{ steps.tag-folder.outputs.image_tag }}
           COSIGN_PRIVATE_KEY: ${{secrets.COSIGN_PRIVATE_KEY}}
           COSIGN_PASSWORD: ${{secrets.COSIGN_PASSWORD}}
         run: |
