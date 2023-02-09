@@ -104,8 +104,7 @@ RUN python -m pip --no-cache-dir install --upgrade \
 # ==================================================================
 # Enterprise gateway kernel bootstrap & cleanup
 # ------------------------------------------------------------------
-RUN curl -L https://github.com/jupyter/enterprise_gateway/releases/download/v${VERSION}/jupyter_enterprise_gateway_kernel_image_files-${VERSION}.tar.gz | \
-    tar -xz -C /usr/local/bin && \
+RUN curl -L https://github.com/jupyter/enterprise_gateway/releases/download/v${VERSION}/jupyter_enterprise_gateway_kernel_image_files-${VERSION}.tar.gz | tar -xz --no-overwrite-dir -C /usr/local/bin && \
     chown ${NB_USER}:${NB_USER} /usr/local/bin/bootstrap-kernel.sh && \
     chmod 0755 /usr/local/bin/bootstrap-kernel.sh && \
     chown -R ${NB_USER}:${NB_USER} /usr/local/bin/kernel-launchers && \
