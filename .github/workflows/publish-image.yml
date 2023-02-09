@@ -13,6 +13,7 @@ jobs:
   build-and-push-image:
     runs-on: ubuntu-22.04
     outputs:
+      base_image_tag: ${{ steps.tag-folder.outputs.image_base_tag }}
       image_tag: ${{ steps.tag-folder.outputs.image_tag }}
     steps:
       - name: Checkout
@@ -107,7 +108,7 @@ jobs:
       - name: SBoM create and publish
         uses: anchore/sbom-action@v0
         with:
-          image: konstellation/kdl-py:${{ needs.build-and-push-image.outputs.image_tag }}
+          image: konstellation/kdl-py:${{ needs.build-and-push-image.outputs.image_base_tag }}-${{ needs.build-and-push-image.outputs.image_tag }}
           output-file: ./sbom.syft.spdx.json
 
       - name: Upload SBoM artifact
@@ -156,7 +157,8 @@ jobs:
 
       - name: Create SBoM attestation
         run: |
-          cosign attest --yes --predicate ./sbom.syft.spdx.json --key env://COSIGN_PRIVATE_KEY konstellation/kdl-py:${{ needs.build-and-push-image.outputs.image_tag }}
+          cosign attest --yes --predicate ./sbom.syft.spdx.json --key env://COSIGN_PRIVATE_KEY konstellation/kdl-py:${{ needs.build-and-push-image.outputs.image_base_tag }}
+          cosign attest --yes --predicate ./sbom.syft.spdx.json --key env://COSIGN_PRIVATE_KEY konstellation/kdl-py:${{ needs.build-and-push-image.outputs.image_base_tag }}-${{ needs.build-and-push-image.outputs.image_tag }}
         env:
           COSIGN_PRIVATE_KEY: ${{secrets.COSIGN_PRIVATE_KEY}}
           COSIGN_PASSWORD: ${{secrets.COSIGN_PASSWORD}}
@@ -169,7 +171,8 @@ jobs:
 
       - name: Create vulnerability report attestation
         run: |
-          cosign attest --yes --predicate ./vulnerability-report.grype.json --key env://COSIGN_PRIVATE_KEY konstellation/kdl-py:${{ needs.build-and-push-image.outputs.image_tag }}
+          cosign attest --yes --predicate ./vulnerability-report.grype.json --key env://COSIGN_PRIVATE_KEY konstellation/kdl-py:${{ needs.build-and-push-image.outputs.image_base_tag }}
+          cosign attest --yes --predicate ./vulnerability-report.grype.json --key env://COSIGN_PRIVATE_KEY konstellation/kdl-py:${{ needs.build-and-push-image.outputs.image_base_tag }}${{ needs.build-and-push-image.outputs.image_tag }}
         env:
           COSIGN_PRIVATE_KEY: ${{secrets.COSIGN_PRIVATE_KEY}}
           COSIGN_PASSWORD: ${{secrets.COSIGN_PASSWORD}}
