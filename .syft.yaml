@@ -4,7 +4,7 @@
 # output:
 #   - "json=<syft-json-output-file>"
 #   - "spdx-json=<spdx-json-output-file>"
-output: "table"
+output: "spdx-json=sbom.syft.spdx.json"
 
 # suppress all output (except for the SBOM report)
 # same as -q ; SYFT_QUIET env var
@@ -15,7 +15,7 @@ file: ""
 
 # enable/disable checking for application updates on startup
 # same as SYFT_CHECK_FOR_APP_UPDATE env var
-check-for-app-update: true
+check-for-app-update: false
 
 # a list of globs to exclude from scanning. same as --exclude ; for example:
 # exclude:
