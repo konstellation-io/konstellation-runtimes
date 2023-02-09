@@ -10,9 +10,10 @@ on:
 #   packages: write
 
 jobs:
-  new-release:
-    runs-on: ubuntu-20.04
-
+  build-and-push-image:
+    runs-on: ubuntu-22.04
+    outputs:
+      image_tag: ${{ steps.tag-folder.outputs.image_tag }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -34,12 +35,6 @@ jobs:
           echo "dockerfile_folder=${DOCKERFILE_FOLDER}" >> ${GITHUB_OUTPUT}
           echo "image_base_tag=${IMAGE_BASE_TAG}" >> ${GITHUB_OUTPUT}
           echo "image_tag=${IMAGE_TAG}" >> ${GITHUB_OUTPUT}
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
 
       - name: Cache Docker layers
         uses: actions/cache@v3
@@ -66,6 +61,7 @@ jobs:
             type=ref,event=tag
             type=ref,event=pr
             type=semver,pattern=v{{version}}
+            type=sha,format=long
 
       - name: Push to Docker Hub
         uses: docker/build-push-action@v3
@@ -80,12 +76,89 @@ jobs:
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
 
-      - name: Publish Release SBoM
-        uses: anchore/sbom-action@v0
-        with:
-          image: konstellation/kdl-py:${{ steps.tag-folder.outputs.image_base_tag }}
-
       - name: Move cache
         run: |
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+      - name: Sign image with Cosign
+        env:
+          TAGS: ${{ steps.docker_image_metadata.outputs.tags }}
+          COSIGN_PRIVATE_KEY: ${{secrets.COSIGN_PRIVATE_KEY}}
+          COSIGN_PASSWORD: ${{secrets.COSIGN_PASSWORD}}
+        run: |
+          cosign sign --key env://COSIGN_PRIVATE_KEY ${TAGS}
+
+  create-sbom-and-scan:
+    runs-on: ubuntu-22.04
+    needs: build-and-push-image
+    steps:
+      - name: SBoM create and publish
+        uses: anchore/sbom-action@v0
+        with:
+          image: konstellation/kdl-py:${{ needs.build-and-push-image.outputs.image_tag }}
+          output-file: ./sbom.syft.spdx.json
+
+      - name: Upload SBoM artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: sbom.syft.spdx.json
+          path: ./sbom.syft.spdx.json
+
+      - name: Scan image with Grype
+        uses: anchore/scan-action@v3
+        with:
+          sbom: ./sbom.syft.spdx.json
+
+      - name: Upload vulnerability report artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: vulnerability-report.grype.json
+          path: ./vulnerability-report.grype.json
+
+  attestation:
+    runs-on: ubuntu-22.04
+    needs: [create-sbom-and-scan, build-and-push-image]
+    steps:
+      - name: Download SBoM artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: sbom.syft.spdx.json
+          path: ./sbom.syft.spdx.json
+
+      - name: Download vulnerability report artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: vulnerability-report.grype.json
+          path: ./vulnerability-report.grype.json
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@main
+        # with:
+        #   cosign-release: "v2.8.1" # We don't know if this represents the cosign version or the cosign-installer version
+
+      - name: Login to DockerHub Registry
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.docker_username }}
+          password: ${{ secrets.docker_token }}
+
+      - name: Create SBoM attestation
+        run: |
+          cosign attest --yes --predicate ./sbom.syft.spdx.json --key env://COSIGN_PRIVATE_KEY konstellation/kdl-py:${{ needs.build-and-push-image.outputs.image_tag }}
+        env:
+          COSIGN_PRIVATE_KEY: ${{secrets.COSIGN_PRIVATE_KEY}}
+          COSIGN_PASSWORD: ${{secrets.COSIGN_PASSWORD}}
+
+      - name: Upload attestation artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: cosign-attestation.json
+          path: ./cosign-attestation.json
+
+      - name: Create vulnerability report attestation
+        run: |
+          cosign attest --yes --predicate ./vulnerability-report.grype.json --key env://COSIGN_PRIVATE_KEY konstellation/kdl-py:${{ needs.build-and-push-image.outputs.image_tag }}
+        env:
+          COSIGN_PRIVATE_KEY: ${{secrets.COSIGN_PRIVATE_KEY}}
+          COSIGN_PASSWORD: ${{secrets.COSIGN_PASSWORD}}

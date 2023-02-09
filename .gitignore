@@ -141,3 +141,6 @@ results-package.json.json
 
 # node modules
 node_modules/
+
+# cosign private key
+cosign.key
