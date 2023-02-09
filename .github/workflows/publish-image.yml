@@ -54,6 +54,19 @@ jobs:
           username: ${{ secrets.docker_username }}
           password: ${{ secrets.docker_token }}
 
+      - name: Prepare Docker image metadata
+        id: docker_image_metadata
+        uses: docker/metadata-action@v4
+        with:
+          images: "docker.io/konstellation/${{ github.event.repository.name }}"
+          flavor: latest=true
+          tags: |
+            type=schedule
+            type=ref,event=branch
+            type=ref,event=tag
+            type=ref,event=pr
+            type=semver,pattern=v{{version}}
+
       - name: Push to Docker Hub
         uses: docker/build-push-action@v3
         with:
