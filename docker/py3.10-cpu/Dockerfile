@@ -1,6 +1,9 @@
 # FROM ubuntu:22.04
 FROM ubuntu@sha256:c985bc3f77946b8e92c9a3648c6f31751a7dd972e06604785e47303f4ad47c4c
+
 #checkov:skip=CKV_DOCKER_2: "Ensure that HEALTHCHECK instructions have been added to container images"
+
+# OCI Labels will be added using Github Actions
 LABEL maintainer "Intelygenz - Konstellation Team"
 
 ARG NB_USER="coder"
@@ -80,7 +83,7 @@ RUN \
     # ==================================================================
     # clean up
     # ------------------------------------------------------------------
-    apt-get clean && \
+    apt-get clean && apt-get autoremove && \
     rm -rf /var/lib/apt/lists/* /etc/apt/sources.list.d/cuda.list /etc/apt/sources.list.d/nvidia-ml.list
 
 # ==================================================================
