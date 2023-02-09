@@ -13,7 +13,7 @@ jobs:
   build-and-push-image:
     runs-on: ubuntu-22.04
     outputs:
-      base_image_tag: ${{ steps.tag-folder.outputs.image_base_tag }}
+      image_base_tag: ${{ steps.tag-folder.outputs.image_base_tag }}
       image_tag: ${{ steps.tag-folder.outputs.image_tag }}
     steps:
       - name: Checkout
