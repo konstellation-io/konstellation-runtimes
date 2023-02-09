@@ -87,6 +87,11 @@ jobs:
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@main
+        # with:
+        #   cosign-release: "v2.8.1" # We don't know if this represents the cosign version or the cosign-installer version
+
       - name: Sign image with Cosign
         env:
           TAGS: ${{ steps.docker_image_metadata.outputs.tags }}
