@@ -71,7 +71,6 @@ jobs:
         uses: anchore/sbom-action@v0
         with:
           image: konstellation/kdl-py:${{ steps.tag-folder.outputs.image_base_tag }}
-          artifact-name: sbom-kdl-py:${{ steps.tag-folder.outputs.image_base_tag }}
 
       - name: Move cache
         run: |
