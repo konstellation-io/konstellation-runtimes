@@ -8,8 +8,6 @@ ARG NB_UID="1000"
 ARG NB_GID="1000"
 ARG VERSION=2.5.0
 ARG PIP_TARGET_FOLDER=/kernel/lib/python/site-packages
-ARG APT_INSTALL=""
-ARG PIP_INSTALL="python -m pip --no-cache-dir install --upgrade"
 ARG PROTOC_VERSION=3.19.4
 ARG KST_CLI_VERSION=1.0-alpha.4
 ARG DEBIAN_FRONTEND=noninteractive
@@ -73,7 +71,12 @@ RUN \
     # git
     # ------------------------------------------------------------------
     add-apt-repository --yes ppa:git-core/ppa && \
-    DEBIAN_FRONTEND=noninteractive $APT_INSTALL git=1:2.39.1-0ppa1~ubuntu22.04.1 && \
+    apt-get install -y --no-install-recommends git=1:2.39.1-0ppa1~ubuntu22.04.1 && \
+    # nodejs
+    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | gpg --dearmor | tee /usr/share/keyrings/nodesource.gpg >/dev/null && \
+    echo "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_16.x $(lsb_release -s -c) main" |tee /etc/apt/sources.list.d/nodesource.list && \
+    echo "deb-src [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_16.x $(lsb_release -s -c) main" | tee -a /etc/apt/sources.list.d/nodesource.list && \
+    apt-get update && apt-get install -y --no-install-recommends nodejs=16.19.0-deb-1nodesource1 && \
     # ==================================================================
     # clean up
     # ------------------------------------------------------------------
@@ -83,11 +86,11 @@ RUN \
 # ==================================================================
 # python libraries
 # ------------------------------------------------------------------
-RUN $PIP_INSTALL \
+RUN python -m pip --no-cache-dir install --upgrade \
     setuptools==67.2.0 \
     wheel==0.38.4 \
     && \
-    $PIP_INSTALL \
+    python -m pip --no-cache-dir install --upgrade \
     pycrypto==2.6.1 \
     future==0.18.3 \
     notebook==6.5.2 \
@@ -127,12 +130,7 @@ RUN \
     curl -L "https://dl.min.io/client/mc/release/linux-amd64/mc.RELEASE.2023-01-28T20-29-38Z" -O && \
     curl https://dl.min.io/client/mc/release/linux-amd64/mc.RELEASE.2023-01-28T20-29-38Z.sha256sum | sha256sum -c && \
     mv mc.RELEASE.2023-01-28T20-29-38Z /usr/local/bin/mc && \
-    chmod +x /usr/local/bin/mc && \
-    # nodejs
-    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | gpg --dearmor | tee /usr/share/keyrings/nodesource.gpg >/dev/null && \
-    echo "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_16.x $(lsb_release -s -c) main" |tee /etc/apt/sources.list.d/nodesource.list && \
-    echo "deb-src [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_16.x $(lsb_release -s -c) main" | tee -a /etc/apt/sources.list.d/nodesource.list && \
-    apt-get update && $APT_INSTALL nodejs=16.19.0-deb-1nodesource1
+    chmod +x /usr/local/bin/mc
 
 # ==================================================================
 # config & cleanup
