@@ -133,13 +133,13 @@ jobs:
     needs: [create-sbom-and-scan, build-and-push-image]
     steps:
       - name: Download SBoM artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: sbom.syft.spdx.json
           path: ./sbom.syft.spdx.json
 
       - name: Download vulnerability report artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: vulnerability-report.grype.json
           path: ./vulnerability-report.grype.json
