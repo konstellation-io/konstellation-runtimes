@@ -112,7 +112,7 @@ jobs:
           output-file: ./sbom.syft.spdx.json
 
       - name: Upload SBoM artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: sbom.syft.spdx.json
           path: ./sbom.syft.spdx.json
@@ -123,7 +123,7 @@ jobs:
           sbom: ./sbom.syft.spdx.json
 
       - name: Upload vulnerability report artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: vulnerability-report.grype.json
           path: ./vulnerability-report.grype.json
@@ -164,7 +164,7 @@ jobs:
           COSIGN_PASSWORD: ${{secrets.COSIGN_PASSWORD}}
 
       - name: Upload attestation artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: cosign-attestation.json
           path: ./cosign-attestation.json
