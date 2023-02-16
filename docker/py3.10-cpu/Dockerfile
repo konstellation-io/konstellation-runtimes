@@ -85,12 +85,6 @@ RUN \
     # ------------------------------------------------------------------
     apt-get clean && apt-get autoremove && \
     rm -rf /var/lib/apt/lists/* /etc/apt/sources.list.d/cuda.list /etc/apt/sources.list.d/nvidia-ml.list
-    # ==================================================================
-    # nodejs
-    # ------------------------------------------------------------------
-    curl -sL https://deb.nodesource.com/setup_16.x -o /tmp/nodesource_setup.sh && \
-    bash /tmp/nodesource_setup.sh && \
-    apt-get install nodejs=16.19.0-deb-1nodesource1 -y
 
 # Split apt update stages to avoid cache invalidation
 RUN \
