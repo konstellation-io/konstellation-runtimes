@@ -78,8 +78,6 @@ RUN rm -rf /var/lib/apt/lists/* \
     bash /tmp/nodesource_setup.sh && \
     apt-get install nodejs=16.19.0-deb-1nodesource1 -y
 
-COPY dvcorg-cml-0.18.17.tgz /tmp/dvcorg-cml-0.18.17.tgz
-
 # Split apt update stages to avoid cache invalidation
 RUN \
     # ==================================================================
@@ -90,9 +88,8 @@ RUN \
     # ==================================================================
     # cml
     # ------------------------------------------------------------------
-    npm install --global /tmp/dvcorg-cml-0.18.17.tgz
-    # curl -o /usr/local/bin/cml -L "https://github.com/iterative/cml/releases/download/v0.18.17/cml-linux-x64" && \
-    # chmod +x /usr/local/bin/cml
+    curl -o /usr/local/bin/cml -L "https://github.com/iterative/cml/releases/download/v0.18.21/cml-linux-x64" && \
+    chmod +x /usr/local/bin/cml
 # ==================================================================
 # python libraries
 # ------------------------------------------------------------------

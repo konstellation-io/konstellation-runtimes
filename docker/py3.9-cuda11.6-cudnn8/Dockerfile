@@ -15,14 +15,14 @@ ENV KERNEL_LANGUAGE=python
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 USER root
 RUN apt-get update && \
-# ==================================================================
-# Create NB_USER user and group
-# ------------------------------------------------------------------
+    # ==================================================================
+    # Create NB_USER user and group
+    # ------------------------------------------------------------------
     groupadd -g "${NB_GID}" "${NB_USER}" && \
     useradd -l -m -s /bin/bash -N -g "${NB_GID}" -u "${NB_UID}" "${NB_USER}" && \
-# ==================================================================
-# tools
-# ------------------------------------------------------------------
+    # ==================================================================
+    # tools
+    # ------------------------------------------------------------------
     DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
         build-essential \
         apt-utils \
@@ -53,14 +53,14 @@ RUN apt-get update && \
         cmake \
         locales \
         && \
-# ==================================================================
-# Set locale
-# ------------------------------------------------------------------
+    # ==================================================================
+    # Set locale
+    # ------------------------------------------------------------------
     echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
     locale-gen && \
-# ==================================================================
-# python and git
-# ------------------------------------------------------------------
+    # ==================================================================
+    # python and git
+    # ------------------------------------------------------------------
     add-apt-repository ppa:deadsnakes/ppa && \
     add-apt-repository ppa:git-core/ppa && \
     apt-get update && \
@@ -77,10 +77,24 @@ RUN apt-get update && \
     ln -s /usr/bin/python3.9 /usr/local/bin/python3 && \
     ln -s /usr/bin/python3.9 /usr/local/bin/python && \
     # ==================================================================
+    # nodejs
+    # ------------------------------------------------------------------
+    curl -sL https://deb.nodesource.com/setup_16.x -o /tmp/nodesource_setup.sh && \
+    bash /tmp/nodesource_setup.sh && \
+    apt-get install nodejs=16.19.0-deb-1nodesource1 -y
+
+# Split apt update stages to avoid cache invalidation
+RUN \
+    # ==================================================================
     # minio client
     # ------------------------------------------------------------------
     curl -o /usr/local/bin/mc -L "https://dl.min.io/client/mc/release/linux-amd64/mc" && \
-    chmod +x /usr/local/bin/mc
+    chmod +x /usr/local/bin/mc && \
+    # ==================================================================
+    # cml
+    # ------------------------------------------------------------------
+    curl -o /usr/local/bin/cml -L "https://github.com/iterative/cml/releases/download/v0.18.21/cml-linux-x64" && \
+    chmod +x /usr/local/bin/cml
 # ==================================================================
 # python libraries
 # ------------------------------------------------------------------
