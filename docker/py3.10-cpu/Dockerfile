@@ -1,6 +1,5 @@
 # FROM ubuntu:22.04
 FROM ubuntu@sha256:c985bc3f77946b8e92c9a3648c6f31751a7dd972e06604785e47303f4ad47c4c
-
 #checkov:skip=CKV_DOCKER_2: "Ensure that HEALTHCHECK instructions have been added to container images"
 
 # OCI Labels will be added using Github Actions
@@ -9,19 +8,21 @@ LABEL maintainer "Intelygenz - Konstellation Team"
 ARG NB_USER="coder"
 ARG NB_UID="1000"
 ARG NB_GID="1000"
-ARG VERSION=2.5.0
-ARG PIP_TARGET_FOLDER=/kernel/lib/python/site-packages
 ARG PROTOC_VERSION=3.19.4
 ARG KST_CLI_VERSION=1.0-alpha.4
+ARG MINIO_CLIENT_VERSION=mc.RELEASE.2023-01-28T20-29-38Z
+ARG CML_VERSION=0.18.21
 ARG DEBIAN_FRONTEND=noninteractive
+
 ENV LANG=C.UTF-8
-ENV KERNEL_LANGUAGE=python
 ENV PATH=/home/${NB_USER}/.local/bin:$PATH
 ENV PIPENV_VENV_IN_PROJECT=1
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 USER root
+
+WORKDIR /tmp
 
 RUN \
     # ==================================================================
@@ -51,11 +52,11 @@ RUN \
     lsb-release=11.1.0ubuntu4 \
     netcat=1.218-4ubuntu1 \
     openssh-client=1:8.9p1-3ubuntu0.1 \
-    python3=3.10.6-1~22.04 \
     python3-dev=3.10.6-1~22.04 \
-    python3-distutils=3.10.6-1~22.04 \
     python3-distutils-extra=2.45 \
+    python3-distutils=3.10.6-1~22.04 \
     python3-pip=22.0.2+dfsg-1ubuntu0.1 \
+    python3=3.10.6-1~22.04 \
     software-properties-common=0.99.22.5 \
     tzdata=2022g-0ubuntu0.22.04.1 \
     unzip=6.0-26ubuntu3.1 \
@@ -74,17 +75,19 @@ RUN \
     # git
     # ------------------------------------------------------------------
     add-apt-repository --yes ppa:git-core/ppa && \
-    apt-get install -y --no-install-recommends git=1:2.39.1-0ppa1~ubuntu22.04.1 && \
+    apt-get install -y --no-install-recommends git=1:2.39.2-0ppa1~ubuntu22.04.1 && \
+    # ==================================================================
     # nodejs
+    # ------------------------------------------------------------------
     curl -fsSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | gpg --dearmor | tee /usr/share/keyrings/nodesource.gpg >/dev/null && \
     echo "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_16.x $(lsb_release -s -c) main" |tee /etc/apt/sources.list.d/nodesource.list && \
     echo "deb-src [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_16.x $(lsb_release -s -c) main" | tee -a /etc/apt/sources.list.d/nodesource.list && \
-    apt-get update && apt-get install -y --no-install-recommends nodejs=16.19.0-deb-1nodesource1 && \
+    apt-get update && apt-get install -y --no-install-recommends nodejs=16.19.1-deb-1nodesource1 && \
     # ==================================================================
     # clean up
     # ------------------------------------------------------------------
     apt-get clean && apt-get autoremove && \
-    rm -rf /var/lib/apt/lists/* /etc/apt/sources.list.d/cuda.list /etc/apt/sources.list.d/nvidia-ml.list
+    rm -rf /var/lib/apt/lists/*
 
 # ==================================================================
 # python libraries
@@ -102,37 +105,27 @@ RUN python -m pip --no-cache-dir install --upgrade \
     pipenv==2023.2.4
 
 # ==================================================================
-# Enterprise gateway kernel bootstrap & cleanup
-# ------------------------------------------------------------------
-RUN curl -L https://github.com/jupyter/enterprise_gateway/releases/download/v${VERSION}/jupyter_enterprise_gateway_kernel_image_files-${VERSION}.tar.gz | tar -xz --no-overwrite-dir -C /usr/local/bin && \
-    chown ${NB_USER}:${NB_USER} /usr/local/bin/bootstrap-kernel.sh && \
-    chmod 0755 /usr/local/bin/bootstrap-kernel.sh && \
-    chown -R ${NB_USER}:${NB_USER} /usr/local/bin/kernel-launchers && \
-    # ==================================================================
-    # make PYTHONPATH folder for Jupyter kernels
-    # ------------------------------------------------------------------
-    mkdir -p ${PIP_TARGET_FOLDER} && \
-    chown -R ${NB_USER}:${NB_USER} ${PIP_TARGET_FOLDER}
-
-# ==================================================================
 # Install tools
 # ------------------------------------------------------------------
 RUN \
     # protoc compiler
-    curl -LO "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip" && \
-    unzip -o protoc-${PROTOC_VERSION}-linux-x86_64.zip -d /usr/local/bin/protoc && \
+    curl -sLO "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip" && \
+    unzip protoc-${PROTOC_VERSION}-linux-x86_64.zip && \
+    mv bin/protoc /usr/local/bin/protoc && \
     chmod +x /usr/local/bin/protoc && \
-    rm -f protoc-${PROTOC_VERSION}-linux-x86_64.zip && \
     # konstellation KLI
-    curl -LO "https://github.com/konstellation-io/kli/releases/download/v${KST_CLI_VERSION}/kli_${KST_CLI_VERSION}_linux_amd64.tar.gz" && \
-    curl -L "https://github.com/konstellation-io/kli/releases/download/v${KST_CLI_VERSION}/kli_${KST_CLI_VERSION}_checksums.txt" | sha256sum --check --ignore-missing --quiet || exit 1 && \
+    curl -sLO "https://github.com/konstellation-io/kli/releases/download/v${KST_CLI_VERSION}/kli_${KST_CLI_VERSION}_linux_amd64.tar.gz" && \
+    curl -sL "https://github.com/konstellation-io/kli/releases/download/v${KST_CLI_VERSION}/kli_${KST_CLI_VERSION}_checksums.txt" | sha256sum --check --ignore-missing --quiet || exit 1 && \
     tar xzf kli_${KST_CLI_VERSION}_linux_amd64.tar.gz -C /usr/local/bin --strip-components=2 kli_${KST_CLI_VERSION}_linux_amd64/bin/kli && \
-    rm kli_${KST_CLI_VERSION}_linux_amd64.tar.gz && \
     # minio client
-    curl -L "https://dl.min.io/client/mc/release/linux-amd64/mc.RELEASE.2023-01-28T20-29-38Z" -O && \
-    curl https://dl.min.io/client/mc/release/linux-amd64/mc.RELEASE.2023-01-28T20-29-38Z.sha256sum | sha256sum -c && \
-    mv mc.RELEASE.2023-01-28T20-29-38Z /usr/local/bin/mc && \
-    chmod +x /usr/local/bin/mc
+    curl -sL "https://dl.min.io/client/mc/release/linux-amd64/archive/${MINIO_CLIENT_VERSION}" -O && \
+    curl -s https://dl.min.io/client/mc/release/linux-amd64/archive/${MINIO_CLIENT_VERSION}.sha256sum | sha256sum -c && \
+    mv ${MINIO_CLIENT_VERSION} /usr/local/bin/mc && \
+    chmod +x /usr/local/bin/mc && \
+    # cml
+    curl -sL -o /usr/local/bin/cml "https://github.com/iterative/cml/releases/download/v${CML_VERSION}/cml-linux-x64" && \
+    chmod +x /usr/local/bin/cml
+
 
 # ==================================================================
 # config & cleanup
@@ -145,5 +138,8 @@ RUN ldconfig && \
 # ==================================================================
 # Command
 # ------------------------------------------------------------------
+WORKDIR /home/${NB_USER}
+
 USER ${NB_USER}
-CMD ["/usr/local/bin/bootstrap-kernel.sh"]
+
+CMD ["bash"]

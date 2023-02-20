@@ -5,10 +5,6 @@ on:
     tags:
       - "**"
 
-# permissions: []
-#   contents: read
-#   packages: write
-
 jobs:
   build-and-push-image:
     runs-on: ubuntu-22.04
@@ -24,7 +20,7 @@ jobs:
       - name: Get image tag and Dockerfile folder
         id: tag-folder
         ## Step variables explanation
-        # TAG=py-3.9-v1.1.0
+        # TAG=py3.9-v1.1.0
         # DOCKERFILE_FOLDER=py3.9
         # IMAGE_BASE_TAG=3.9
         # IMAGE_TAG=1.1.0
@@ -37,18 +33,21 @@ jobs:
           echo "image_base_tag=${IMAGE_BASE_TAG}" >> ${GITHUB_OUTPUT}
           echo "image_tag=${IMAGE_TAG}" >> ${GITHUB_OUTPUT}
 
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@main
+        with:
+          cosign-release: "v1.13.1"
+
+      - name: Install Syft
+        uses: anchore/sbom-action/download-syft@54e36e45f34bc64728f51adb8044404daca492a6 # v0.13.2
+        with:
+          syft-version: v0.72.0
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-
-      - name: Cache Docker layers
-        uses: actions/cache@v3
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: ${{ runner.os }}-buildx-
 
       - name: Login to DockerHub Registry
         uses: docker/login-action@v2
@@ -57,122 +56,61 @@ jobs:
           password: ${{ secrets.docker_token }}
 
       - name: Prepare Docker image metadata
-        id: docker_image_metadata
+        id: meta
         uses: docker/metadata-action@v4
         with:
-          images: "docker.io/konstellation/kdl-py:${{ steps.tag-folder.outputs.image_tag }}"
-          flavor: latest=true
+          images: "docker.io/konstellation/kdl-py"
+          flavor: latest=auto
           tags: |
-            type=schedule
-            type=ref,event=branch
-            type=ref,event=tag
-            type=ref,event=pr
-            type=semver,pattern=v{{version}}
-            type=sha,format=long
+            type=semver,pattern={{version}},value=${{ steps.tag-folder.outputs.image_base_tag }}
+            type=semver,pattern={{version}},value=${{ steps.tag-folder.outputs.image_base_tag }}-${{ steps.tag-folder.outputs.image_tag }}
+          labels: |
+            org.opencontainers.image.version=${{ steps.tag-folder.outputs.image_base_tag }}-${{ steps.tag-folder.outputs.image_tag }}
 
       - name: Push to Docker Hub
+        id: build_and_push
         uses: docker/build-push-action@v3
         with:
           context: ./docker/${{ steps.tag-folder.outputs.dockerfile_folder }}
           file: ./docker/${{ steps.tag-folder.outputs.dockerfile_folder }}/Dockerfile
           platforms: linux/amd64
           push: true
-          tags: |
-            konstellation/kdl-py:${{ steps.tag-folder.outputs.image_base_tag }}
-            konstellation/kdl-py:${{ steps.tag-folder.outputs.image_base_tag }}-${{ steps.tag-folder.outputs.image_tag }}
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-      - name: Move cache
-        run: |
-          rm -rf /tmp/.buildx-cache
-          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
-
-      - name: Install Cosign
-        uses: sigstore/cosign-installer@main
-        # with:
-        #   cosign-release: "v2.8.1" # We don't know if this represents the cosign version or the cosign-installer version
-
-      - name: Sign image with Cosign
+      - name: Cosign sign and push signature to registry and verify
         env:
-          TAGS: konstellation/kdl-py:${{ steps.tag-folder.outputs.image_base_tag }} konstellation/kdl-py:${{ steps.tag-folder.outputs.image_base_tag }}-${{ steps.tag-folder.outputs.image_tag }}
           COSIGN_PRIVATE_KEY: ${{secrets.COSIGN_PRIVATE_KEY}}
+          COSIGN_PUBLIC_KEY: ${{secrets.COSIGN_PUBLIC_KEY}}
           COSIGN_PASSWORD: ${{secrets.COSIGN_PASSWORD}}
         run: |
-          cosign sign --key env://COSIGN_PRIVATE_KEY ${TAGS}
+          cosign sign --key env://COSIGN_PRIVATE_KEY docker.io/konstellation/kdl-py@${{ steps.build_and_push.outputs.digest }}
+          cosign verify --key env://COSIGN_PUBLIC_KEY docker.io/konstellation/kdl-py@${{ steps.build_and_push.outputs.digest }}
 
-  create-sbom-and-scan:
-    runs-on: ubuntu-22.04
-    needs: build-and-push-image
-    steps:
-      - name: SBoM create and publish
-        uses: anchore/sbom-action@v0
-        with:
-          image: konstellation/kdl-py:${{ needs.build-and-push-image.outputs.image_base_tag }}-${{ needs.build-and-push-image.outputs.image_tag }}
-          output-file: ./sbom.syft.spdx.json
+      - name: Syft generate SBoM
+        run: |
+          syft packages docker.io/konstellation/kdl-py@${{ steps.build_and_push.outputs.digest }}
 
-      - name: Upload SBoM artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: sbom.syft.spdx.json
-          path: ./sbom.syft.spdx.json
-
-      - name: Scan image with Grype
+      - name: Grype scan SBoM
+        id: scan
         uses: anchore/scan-action@v3
         with:
           sbom: ./sbom.syft.spdx.json
 
-      - name: Upload vulnerability report artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: vulnerability-report.grype.json
-          path: ./vulnerability-report.grype.json
-
-  attestation:
-    runs-on: ubuntu-22.04
-    needs: [create-sbom-and-scan, build-and-push-image]
-    steps:
-      - name: Download SBoM artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: sbom.syft.spdx.json
-          path: ./sbom.syft.spdx.json
-
-      - name: Download vulnerability report artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: vulnerability-report.grype.json
-          path: ./vulnerability-report.grype.json
-
-      - name: Install Cosign
-        uses: sigstore/cosign-installer@main
-        # with:
-        #   cosign-release: "v2.8.1" # We don't know if this represents the cosign version or the cosign-installer version
-
-      - name: Login to DockerHub Registry
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.docker_username }}
-          password: ${{ secrets.docker_token }}
-
-      - name: Create SBoM attestation
-        run: |
-          cosign attest --yes --predicate ./sbom.syft.spdx.json --key env://COSIGN_PRIVATE_KEY konstellation/kdl-py:${{ needs.build-and-push-image.outputs.image_base_tag }}
-          cosign attest --yes --predicate ./sbom.syft.spdx.json --key env://COSIGN_PRIVATE_KEY konstellation/kdl-py:${{ needs.build-and-push-image.outputs.image_base_tag }}-${{ needs.build-and-push-image.outputs.image_tag }}
+      - name: Upload vulnerabilities scan report
+        uses: github/codeql-action/upload-sarif@v2
         env:
-          COSIGN_PRIVATE_KEY: ${{secrets.COSIGN_PRIVATE_KEY}}
-          COSIGN_PASSWORD: ${{secrets.COSIGN_PASSWORD}}
-
-      - name: Upload attestation artifact
-        uses: actions/upload-artifact@v2
+          GITHUB_TOKEN: ${{ secrets.PAT }}
         with:
-          name: cosign-attestation.json
-          path: ./cosign-attestation.json
+          sarif_file: ${{ steps.scan.outputs.sarif }}
 
-      - name: Create vulnerability report attestation
-        run: |
-          cosign attest --yes --predicate ./vulnerability-report.grype.json --key env://COSIGN_PRIVATE_KEY konstellation/kdl-py:${{ needs.build-and-push-image.outputs.image_base_tag }}
-          cosign attest --yes --predicate ./vulnerability-report.grype.json --key env://COSIGN_PRIVATE_KEY konstellation/kdl-py:${{ needs.build-and-push-image.outputs.image_base_tag }}${{ needs.build-and-push-image.outputs.image_tag }}
-        env:
-          COSIGN_PRIVATE_KEY: ${{secrets.COSIGN_PRIVATE_KEY}}
-          COSIGN_PASSWORD: ${{secrets.COSIGN_PASSWORD}}
+      - name: Attach SBoM asset to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.PAT }}
+          file: ./sbom.syft.spdx.json
+          asset_name: sbom.syft.spdx.json
+          tag: ${{ github.ref }}
+          overwrite: true
