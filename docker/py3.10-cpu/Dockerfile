@@ -126,7 +126,6 @@ RUN \
     curl -sL -o /usr/local/bin/cml "https://github.com/iterative/cml/releases/download/v${CML_VERSION}/cml-linux-x64" && \
     chmod +x /usr/local/bin/cml
 
-
 # ==================================================================
 # config & cleanup
 # ------------------------------------------------------------------
