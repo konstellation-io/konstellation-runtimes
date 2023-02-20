@@ -59,7 +59,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: "docker.io/konstellation/kdl-py"
+          images: "docker.io/konstellation/kdl-py:${{ steps.tag-folder.outputs.image_tag }}"
           flavor: latest=auto
           tags: |
             type=semver,pattern={{version}},value=${{ steps.tag-folder.outputs.image_base_tag }}
