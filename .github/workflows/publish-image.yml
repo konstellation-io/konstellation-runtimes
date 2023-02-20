@@ -103,12 +103,13 @@ jobs:
           fail-build: false
           # severity-cutoff: critical
 
-      - name: Upload vulnerabilities scan report
-        uses: github/codeql-action/upload-sarif@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT }}
-        with:
-          sarif_file: ${{ steps.scan.outputs.sarif }}
+      # The file cannot be uploaded to the Github Advanced Security Code Scanning in private repositories
+      # - name: Upload vulnerabilities scan report
+      #   uses: github/codeql-action/upload-sarif@v2
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.PAT }}
+      #   with:
+      #     sarif_file: ${{ steps.scan.outputs.sarif }}
 
       - name: Attach SBoM asset to release
         uses: svenstaro/upload-release-action@v2
@@ -116,5 +117,14 @@ jobs:
           repo_token: ${{ secrets.PAT }}
           file: ./sbom.syft.spdx.json
           asset_name: sbom.syft.spdx.json
+          tag: ${{ github.ref }}
+          overwrite: true
+
+      - name: Attach vulnerabilities scan report asset to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.PAT }}
+          file: ${{ steps.scan.outputs.sarif }}
+          asset_name: vulnerabilities-scan-report.sarif
           tag: ${{ github.ref }}
           overwrite: true

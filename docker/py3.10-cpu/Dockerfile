@@ -5,6 +5,7 @@ FROM ubuntu@sha256:c985bc3f77946b8e92c9a3648c6f31751a7dd972e06604785e47303f4ad47
 # OCI Labels will be added using Github Actions
 LABEL maintainer "Intelygenz - Konstellation Team"
 
+# Set build arguments
 ARG NB_USER="coder"
 ARG NB_UID="1000"
 ARG NB_GID="1000"
