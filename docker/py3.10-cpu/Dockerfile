@@ -22,6 +22,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 USER root
 
+# Set the working directory to /tmp to do administrative tasks
 WORKDIR /tmp
 
 RUN \
