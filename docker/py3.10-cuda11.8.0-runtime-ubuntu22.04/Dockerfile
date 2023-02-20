@@ -1,5 +1,5 @@
-# FROM nvidia/cuda:10.2-cudnn7-runtime-ubuntu18.04
-FROM nvidia/cuda@sha256:81cd78ec9eeac4c55de39414a44d853dd13c5cea942db10ca65f34e3a6715b48
+# FROM nvidia/cuda:11.8.0-runtime-ubuntu22.04
+FROM nvidia/cuda@sha256:cf5ef7c8352acc84dcb538a991f05f23ffe4cecc3300212bc921e749b7297433
 #checkov:skip=CKV_DOCKER_2: "Ensure that HEALTHCHECK instructions have been added to container images"
 
 # OCI Labels will be added using GitHub Actions
@@ -35,34 +35,39 @@ RUN \
     # OS dependencies
     # ------------------------------------------------------------------
     apt-get update && apt-get install -y --no-install-recommends -qq \
-      apt-utils=1.6.14 \
-      build-essential=12.4ubuntu1 \
-      ca-certificates=20211016ubuntu0.18.04.1 \
-      cmake=3.10.2-1ubuntu2.18.04.2 \
-      curl=7.58.0-2ubuntu3.22 \
-      libaio1=0.3.110-5ubuntu0.1 \
-      gnupg=2.2.4-1ubuntu1.6 \
-      libffi-dev=3.2.1-8 \
-      libgl1-mesa-glx=20.0.8-0ubuntu1~18.04.1 \
-      libllvm-10-ocaml-dev=1:10.0.0-4ubuntu1~18.04.2 \
-      libltdl7=2.4.6-2 \
-      libsm6=2:1.2.2-1 \
-      libssl-dev=1.1.1-1ubuntu2.1~18.04.21 \
-      libxext-dev=2:1.3.3-1 \
-      libxrender1=1:0.9.10-1 \
-      llvm-10=1:10.0.0-4ubuntu1~18.04.2 \
-      llvm-10-dev=1:10.0.0-4ubuntu1~18.04.2 \
-      llvm-10-runtime=1:10.0.0-4ubuntu1~18.04.2 \
-      llvm-10-tools=1:10.0.0-4ubuntu1~18.04.2 \
-      locales=2.27-3ubuntu1.6 \
-      lsb-release=9.20170808ubuntu1 \
-      netcat=1.10-41.1 \
-      openssh-client=1:7.6p1-4ubuntu0.7 \
-      python3-dev=3.6.7-1~18.04 \
-      software-properties-common=0.96.24.32.20 \
-      tzdata=2022g-0ubuntu0.18.04 \
-      unzip=6.0-21ubuntu1.2 \
-      wget=1.19.4-1ubuntu2.2 \
+      apt-utils=2.4.8 \
+      build-essential=12.9ubuntu3 \
+      ca-certificates=20211016ubuntu0.22.04.1 \
+      cmake=3.22.1-1ubuntu1.22.04.1 \
+      curl=7.81.0-1ubuntu1.7 \
+      gnupg2=2.2.27-3ubuntu2.1 \
+      gpg-agent=2.2.27-3ubuntu2.1 \
+      libaio1=0.3.112-13build1 \
+      libffi-dev=3.4.2-4 \
+      libgl1-mesa-glx=22.2.5-0ubuntu0.1~22.04.1 \
+      libllvm-15-ocaml-dev=1:15.0.6-3~ubuntu0.22.04.2 \
+      libltdl7=2.4.6-15build2 \
+      libsm6=2:1.2.3-1build2 \
+      libssl-dev=3.0.2-0ubuntu1.8 \
+      libxext-dev=2:1.3.4-1build1 \
+      libxrender1=1:0.9.10-1build4 \
+      llvm-15=1:15.0.6-3~ubuntu0.22.04.2 \
+      llvm-15-dev=1:15.0.6-3~ubuntu0.22.04.2 \
+      llvm-15-runtime=1:15.0.6-3~ubuntu0.22.04.2 \
+      llvm-15-tools=1:15.0.6-3~ubuntu0.22.04.2 \
+      locales=2.35-0ubuntu3.1 \
+      lsb-release=11.1.0ubuntu4 \
+      netcat=1.218-4ubuntu1 \
+      openssh-client=1:8.9p1-3ubuntu0.1 \
+      python3-dev=3.10.6-1~22.04 \
+      python3-distutils-extra=2.45 \
+      python3-distutils=3.10.6-1~22.04 \
+      python3-pip=22.0.2+dfsg-1ubuntu0.1 \
+      python3=3.10.6-1~22.04 \
+      software-properties-common=0.99.22.5 \
+      tzdata=2022g-0ubuntu0.22.04.1 \
+      unzip=6.0-26ubuntu3.1 \
+      wget=1.21.2-2ubuntu1 \
     && \
     # ==================================================================
     # Set locale
@@ -70,21 +75,15 @@ RUN \
     echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
     locale-gen && \
     # ==================================================================
-    # python, git
+    # git
     # ------------------------------------------------------------------
-    add-apt-repository --yes --no-update ppa:deadsnakes/ppa && \
     add-apt-repository --yes --no-update ppa:git-core/ppa && \
     apt-get update &&  apt-get install -y --no-install-recommends -qq \
-    git=1:2.39.2-0ppa1~ubuntu18.04.1 \
-    python3.9=3.9.16-1+bionic1 \
-    python3.9-dev=3.9.16-1+bionic1 \
-    python3.9-distutils=3.9.16-1+bionic1 \
-    python3-distutils-extra=2.41ubuntu1 \
-    python3-pip=9.0.1-2.3~ubuntu1.18.04.6 && \
+    git=1:2.39.2-0ppa1~ubuntu22.04.1 && \
     # ==================================================================
-    # Set Python3.9 as default
+    # Set Python3.10 as default
     # ------------------------------------------------------------------
-    update-alternatives --install /usr/local/bin/python python /usr/bin/python3.9 1 && \
+    update-alternatives --install /usr/local/bin/python python /usr/bin/python3.10 1 && \
     # ==================================================================
     # nodejs
     # ------------------------------------------------------------------

@@ -1,8 +1,8 @@
-# FROM nvidia/cuda:10.2-cudnn7-runtime-ubuntu18.04
-FROM nvidia/cuda@sha256:81cd78ec9eeac4c55de39414a44d853dd13c5cea942db10ca65f34e3a6715b48
+# FROM ubuntu:18.04
+FROM ubuntu@sha256:fdd3c9372c19afa928f99afde58f0f80a008ebb695a8c5ee37de5adb7feb46de
 #checkov:skip=CKV_DOCKER_2: "Ensure that HEALTHCHECK instructions have been added to container images"
 
-# OCI Labels will be added using GitHub Actions
+# OCI Labels will be added using Github Actions
 LABEL maintainer "Intelygenz - Konstellation Team"
 
 ARG NB_USER="coder"
@@ -25,7 +25,6 @@ USER root
 WORKDIR /tmp
 
 RUN \
-    rm -rf /etc/apt/sources.list.d/cuda.list /etc/apt/sources.list.d/nvidia-ml.list && \
     # ==================================================================
     # Create NB_USER user and group
     # ------------------------------------------------------------------
@@ -43,17 +42,11 @@ RUN \
       libaio1=0.3.110-5ubuntu0.1 \
       gnupg=2.2.4-1ubuntu1.6 \
       libffi-dev=3.2.1-8 \
-      libgl1-mesa-glx=20.0.8-0ubuntu1~18.04.1 \
-      libllvm-10-ocaml-dev=1:10.0.0-4ubuntu1~18.04.2 \
       libltdl7=2.4.6-2 \
       libsm6=2:1.2.2-1 \
       libssl-dev=1.1.1-1ubuntu2.1~18.04.21 \
       libxext-dev=2:1.3.3-1 \
       libxrender1=1:0.9.10-1 \
-      llvm-10=1:10.0.0-4ubuntu1~18.04.2 \
-      llvm-10-dev=1:10.0.0-4ubuntu1~18.04.2 \
-      llvm-10-runtime=1:10.0.0-4ubuntu1~18.04.2 \
-      llvm-10-tools=1:10.0.0-4ubuntu1~18.04.2 \
       locales=2.27-3ubuntu1.6 \
       lsb-release=9.20170808ubuntu1 \
       netcat=1.10-41.1 \
@@ -96,7 +89,7 @@ RUN \
     # clean up
     # ------------------------------------------------------------------
     apt-get clean && apt-get autoremove && \
-    rm -rf /var/lib/apt/lists/* /etc/apt/sources.list.d/nodesource.list
+    rm -rf /var/lib/apt/lists/*
 
 # ==================================================================
 # python libraries
@@ -106,7 +99,7 @@ RUN python -m pip --no-cache-dir install --upgrade \
     setuptools==67.2.0 \
     wheel==0.38.4 \
     && \
-    python -m pip --no-cache-dir install --upgrade --ignore-installed \
+    python -m pip --no-cache-dir install --upgrade \
     pycrypto==2.6.1 \
     future==0.18.3 \
     notebook==6.5.2 \
@@ -114,9 +107,9 @@ RUN python -m pip --no-cache-dir install --upgrade \
     jupyterlab==3.6.1 \
     pipenv==2023.2.4
 
-# # ==================================================================
-# # Install tools
-# # ------------------------------------------------------------------
+# ==================================================================
+# Install tools
+# ------------------------------------------------------------------
 RUN \
     # protoc compiler
     curl -sLO "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip" && \
@@ -136,17 +129,17 @@ RUN \
     curl -sL -o /usr/local/bin/cml "https://github.com/iterative/cml/releases/download/v${CML_VERSION}/cml-linux-x64" && \
     chmod +x /usr/local/bin/cml
 
-# # ==================================================================
-# # config & cleanup
-# # ------------------------------------------------------------------
+# ==================================================================
+# config & cleanup
+# ------------------------------------------------------------------
 RUN ldconfig && \
     apt-get clean && \
     apt-get autoremove && \
     rm -rf /var/lib/apt/lists/* /tmp/* ~/*
 
-# # ==================================================================
-# # Command
-# # ------------------------------------------------------------------
+# ==================================================================
+# Command
+# ------------------------------------------------------------------
 WORKDIR /home/${NB_USER}
 
 USER ${NB_USER}
