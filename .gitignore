@@ -135,9 +135,10 @@ dmypy.json
 # IDE stuff
 .idea
 .vscode
+.envrc
 
 # Reports
-results-package.json.json
+sbom.syft.spdx.json
 
 # node modules
 node_modules/
