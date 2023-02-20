@@ -20,9 +20,8 @@ ENV PIPENV_VENV_IN_PROJECT=1
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
+# Switch to root and /tmp to do administrative tasks
 USER root
-
-# Set the working directory to /tmp to do administrative tasks
 WORKDIR /tmp
 
 RUN \
