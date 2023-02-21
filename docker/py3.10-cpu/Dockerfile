@@ -13,10 +13,11 @@ ARG PROTOC_VERSION=3.19.4
 ARG KST_CLI_VERSION=1.0-alpha.4
 ARG MINIO_CLIENT_VERSION=mc.RELEASE.2023-01-28T20-29-38Z
 ARG CML_VERSION=0.18.21
+ARG GOLANG_VERSION=1.20.1
 ARG DEBIAN_FRONTEND=noninteractive
 
 ENV LANG=C.UTF-8
-ENV PATH=/home/${NB_USER}/.local/bin:$PATH
+ENV PATH=/home/${NB_USER}/.local/bin:/usr/local/go/bin:$PATH
 ENV PIPENV_VENV_IN_PROJECT=1
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -84,6 +85,12 @@ RUN \
     echo "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_16.x $(lsb_release -s -c) main" |tee /etc/apt/sources.list.d/nodesource.list && \
     echo "deb-src [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_16.x $(lsb_release -s -c) main" | tee -a /etc/apt/sources.list.d/nodesource.list && \
     apt-get update && apt-get install -y --no-install-recommends nodejs=16.19.1-deb-1nodesource1 && \
+    # ==================================================================
+    # golang
+    # ------------------------------------------------------------------
+    curl -fsSL -O https://go.dev/dl/go${GOLANG_VERSION}.linux-amd64.tar.gz && \
+    echo "000a5b1fca4f75895f78befeb2eecf10bfff3c428597f3f1e69133b63b911b02 go${GOLANG_VERSION}.linux-amd64.tar.gz" | sha256sum -c && \
+    tar -C /usr/local -xzf go${GOLANG_VERSION}.linux-amd64.tar.gz && \
     # ==================================================================
     # clean up
     # ------------------------------------------------------------------
