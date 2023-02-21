@@ -16,7 +16,7 @@ ARG GOLANG_VERSION=1.20.1
 ARG DEBIAN_FRONTEND=noninteractive
 
 ENV LANG=C.UTF-8
-ENV PATH=/home/${NB_USER}/.local/bin:$PATH
+ENV PATH=/home/${NB_USER}/.local/bin:/usr/local/go/bin:$PATH
 ENV PIPENV_VENV_IN_PROJECT=1
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -79,6 +79,8 @@ RUN \
     # Set Python3.9 as default
     # ------------------------------------------------------------------
     update-alternatives --install /usr/local/bin/python python /usr/bin/python3.9 1 && \
+    update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.9 1 && \
+    update-alternatives --install /usr/bin/python3-config python3-config /usr/bin/python3.9-config 1 && \
     # ==================================================================
     # nodejs
     # ------------------------------------------------------------------
