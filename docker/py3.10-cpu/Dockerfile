@@ -73,6 +73,8 @@ RUN \
     # Set Python3.10 as default
     # ------------------------------------------------------------------
     update-alternatives --install /usr/local/bin/python python /usr/bin/python3.10 1 && \
+    update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 1 && \
+    update-alternatives --install /usr/bin/python3-config python3-config /usr/bin/python3.10-config 1 && \
     # ==================================================================
     # git
     # ------------------------------------------------------------------
