@@ -34,13 +34,16 @@ RUN \
     useradd -l -m -s /bin/bash -N -g "${NB_GID}" -u "${NB_UID}" "${NB_USER}" && \
     # ==================================================================
     # OS dependencies
-    # ------------------------------------------------------------------
+    # ------------------------------------------------------------------ \
+    # Update cuda keyring
+    apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/3bf863cc.pub && \
+    # Install dependencies
     apt-get update && apt-get install -y --no-install-recommends -qq \
-      apt-utils=1.6.14 \
+      apt-utils=1.6.17 \
       build-essential=12.4ubuntu1 \
       ca-certificates=20211016ubuntu0.18.04.1 \
       cmake=3.10.2-1ubuntu2.18.04.2 \
-      curl=7.58.0-2ubuntu3.22 \
+      curl=7.58.0-2ubuntu3.24 \
       libaio1=0.3.110-5ubuntu0.1 \
       gnupg=2.2.4-1ubuntu1.6 \
       libffi-dev=3.2.1-8 \
@@ -48,7 +51,7 @@ RUN \
       libllvm-10-ocaml-dev=1:10.0.0-4ubuntu1~18.04.2 \
       libltdl7=2.4.6-2 \
       libsm6=2:1.2.2-1 \
-      libssl-dev=1.1.1-1ubuntu2.1~18.04.21 \
+      libssl-dev=1.1.1-1ubuntu2.1~18.04.22 \
       libxext-dev=2:1.3.3-1 \
       libxrender1=1:0.9.10-1 \
       llvm-10=1:10.0.0-4ubuntu1~18.04.2 \
@@ -61,7 +64,7 @@ RUN \
       openssh-client=1:7.6p1-4ubuntu0.7 \
       python3-dev=3.6.7-1~18.04 \
       software-properties-common=0.96.24.32.20 \
-      tzdata=2022g-0ubuntu0.18.04 \
+      tzdata=2023c-0ubuntu0.18.04 \
       unzip=6.0-21ubuntu1.2 \
       wget=1.19.4-1ubuntu2.2 \
     && \
@@ -75,13 +78,14 @@ RUN \
     # ------------------------------------------------------------------
     add-apt-repository --yes --no-update ppa:deadsnakes/ppa && \
     add-apt-repository --yes --no-update ppa:git-core/ppa && \
+    # hadolint ignore=DL3008
     apt-get update &&  apt-get install -y --no-install-recommends -qq \
-    git=1:2.39.2-0ppa1~ubuntu18.04.1 \
-    python3.9=3.9.16-1+bionic1 \
-    python3.9-dev=3.9.16-1+bionic1 \
-    python3.9-distutils=3.9.16-1+bionic1 \
-    python3-distutils-extra=2.41ubuntu1 \
-    python3-pip=9.0.1-2.3~ubuntu1.18.04.6 && \
+    git \
+    python3.9 \ 
+    python3.9-dev \
+    python3.9-distutils \
+    python3-distutils-extra \
+    python3-pip && \
     # ==================================================================
     # Set Python3.9 as default
     # ------------------------------------------------------------------
@@ -94,7 +98,7 @@ RUN \
     curl -fsSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | gpg --dearmor | tee /usr/share/keyrings/nodesource.gpg >/dev/null && \
     echo "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_16.x $(lsb_release -s -c) main" |tee /etc/apt/sources.list.d/nodesource.list && \
     echo "deb-src [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_16.x $(lsb_release -s -c) main" | tee -a /etc/apt/sources.list.d/nodesource.list && \
-    apt-get update && apt-get install -y --no-install-recommends -qq nodejs=16.19.1-deb-1nodesource1 && \
+    apt-get update && apt-get install -y --no-install-recommends -qq nodejs=16.20.0-deb-1nodesource1 && \
     # ==================================================================
     # golang
     # ------------------------------------------------------------------
