@@ -6,9 +6,11 @@ on:
       - "**"
 
 jobs:
-  new-release:
-    runs-on: ubuntu-20.04
-
+  build-and-push-image:
+    runs-on: ubuntu-22.04
+    outputs:
+      image_base_tag: ${{ steps.tag-folder.outputs.image_base_tag }}
+      image_tag: ${{ steps.tag-folder.outputs.image_tag }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -18,7 +20,7 @@ jobs:
       - name: Get image tag and Dockerfile folder
         id: tag-folder
         ## Step variables explanation
-        # TAG=py-3.9-v1.1.0
+        # TAG=py3.9-v1.1.0
         # DOCKERFILE_FOLDER=py3.9
         # IMAGE_BASE_TAG=3.9
         # IMAGE_TAG=1.1.0
@@ -31,18 +33,21 @@ jobs:
           echo "image_base_tag=${IMAGE_BASE_TAG}" >> ${GITHUB_OUTPUT}
           echo "image_tag=${IMAGE_TAG}" >> ${GITHUB_OUTPUT}
 
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@main
+        with:
+          cosign-release: "v1.13.1"
+
+      - name: Install Syft
+        uses: anchore/sbom-action/download-syft@422cb34a0f8b599678c41b21163ea6088edb2624 # v0.14.1
+        with:
+          syft-version: v0.72.0
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-
-      - name: Cache Docker layers
-        uses: actions/cache@v3
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: ${{ runner.os }}-buildx-
 
       - name: Login to DockerHub Registry
         uses: docker/login-action@v2
@@ -50,8 +55,21 @@ jobs:
           username: ${{ secrets.docker_username }}
           password: ${{ secrets.docker_token }}
 
+      - name: Prepare Docker image metadata
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: "docker.io/konstellation/kdl-py:${{ steps.tag-folder.outputs.image_base_tag }}-${{ steps.tag-folder.outputs.image_tag }}"
+          flavor: latest=auto
+          tags: |
+            type=semver,pattern={{version}},value=${{ steps.tag-folder.outputs.image_base_tag }}
+            type=semver,pattern={{version}},value=${{ steps.tag-folder.outputs.image_base_tag }}-${{ steps.tag-folder.outputs.image_tag }}
+          labels: |
+            org.opencontainers.image.version=${{ steps.tag-folder.outputs.image_base_tag }}-${{ steps.tag-folder.outputs.image_tag }}
+
       - name: Push to Docker Hub
-        uses: docker/build-push-action@v3
+        id: build_and_push
+        uses: docker/build-push-action@v4
         with:
           context: ./docker/${{ steps.tag-folder.outputs.dockerfile_folder }}
           file: ./docker/${{ steps.tag-folder.outputs.dockerfile_folder }}/Dockerfile
@@ -60,10 +78,53 @@ jobs:
           tags: |
             konstellation/kdl-py:${{ steps.tag-folder.outputs.image_base_tag }}
             konstellation/kdl-py:${{ steps.tag-folder.outputs.image_base_tag }}-${{ steps.tag-folder.outputs.image_tag }}
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-      - name: Move cache
+      - name: Cosign sign and push signature to registry and verify
+        env:
+          COSIGN_PRIVATE_KEY: ${{secrets.COSIGN_PRIVATE_KEY}}
+          COSIGN_PUBLIC_KEY: ${{secrets.COSIGN_PUBLIC_KEY}}
+          COSIGN_PASSWORD: ${{secrets.COSIGN_PASSWORD}}
         run: |
-          rm -rf /tmp/.buildx-cache
-          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+          cosign sign --key env://COSIGN_PRIVATE_KEY docker.io/konstellation/kdl-py@${{ steps.build_and_push.outputs.digest }}
+          cosign verify --key env://COSIGN_PUBLIC_KEY docker.io/konstellation/kdl-py@${{ steps.build_and_push.outputs.digest }}
+
+      - name: Syft generate SBoM
+        run: |
+          syft packages docker.io/konstellation/kdl-py@${{ steps.build_and_push.outputs.digest }}
+
+      - name: Grype scan SBoM
+        id: scan
+        uses: anchore/scan-action@v3
+        with:
+          sbom: ./sbom.syft.spdx.json
+          fail-build: false
+          # severity-cutoff: critical
+
+      # The file cannot be uploaded to the Github Advanced Security Code Scanning in private repositories
+      # - name: Upload vulnerabilities scan report
+      #   uses: github/codeql-action/upload-sarif@v2
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.PAT }}
+      #   with:
+      #     sarif_file: ${{ steps.scan.outputs.sarif }}
+
+      - name: Attach SBoM asset to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.PAT }}
+          file: ./sbom.syft.spdx.json
+          asset_name: sbom.syft.spdx.json
+          tag: ${{ github.ref }}
+          overwrite: true
+
+      - name: Attach vulnerabilities scan report asset to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.PAT }}
+          file: ${{ steps.scan.outputs.sarif }}
+          asset_name: vulnerabilities-scan-report.sarif
+          tag: ${{ github.ref }}
+          overwrite: true

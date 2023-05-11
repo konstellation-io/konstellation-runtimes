@@ -1,10 +1,11 @@
-# FROM nvidia/cuda:11.6.1-cudnn8-devel-ubuntu18.04
-FROM nvidia/cuda@sha256:7e550ae174b986d531b6f39540d35707ffe2fa441d938fd20b1ef2bdc967740c
+# FROM ubuntu:22.04
+FROM ubuntu@sha256:c985bc3f77946b8e92c9a3648c6f31751a7dd972e06604785e47303f4ad47c4c
 #checkov:skip=CKV_DOCKER_2: "Ensure that HEALTHCHECK instructions have been added to container images"
 
-# OCI Labels will be added using GitHub Actions
+# OCI Labels will be added using Github Actions
 LABEL maintainer "Intelygenz - Konstellation Team"
 
+# Set build arguments
 ARG NB_USER="coder"
 ARG NB_UID="1000"
 ARG NB_GID="1000"
@@ -21,49 +22,47 @@ ENV PIPENV_VENV_IN_PROJECT=1
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
+# Switch to root and /tmp to do administrative tasks
 USER root
-
 WORKDIR /tmp
 
 RUN \
-    rm -rf /etc/apt/sources.list.d/cuda.list /etc/apt/sources.list.d/nvidia-ml.list && \
     # ==================================================================
     # Create NB_USER user and group
     # ------------------------------------------------------------------
     groupadd -g "${NB_GID}" "${NB_USER}" && \
     useradd -l -m -s /bin/bash -N -g "${NB_GID}" -u "${NB_UID}" "${NB_USER}" && \
     # ==================================================================
-    # OS dependencies
+    # tools
     # ------------------------------------------------------------------
-    apt-get update && apt-get install -y --no-install-recommends -qq \
-      apt-utils=1.6.14 \
-      build-essential=12.4ubuntu1 \
-      ca-certificates=20211016ubuntu0.18.04.1 \
-      cmake=3.10.2-1ubuntu2.18.04.2 \
-      curl=7.58.0-2ubuntu3.22 \
-      libaio1=0.3.110-5ubuntu0.1 \
-      gnupg=2.2.4-1ubuntu1.6 \
-      libffi-dev=3.2.1-8 \
-      libgl1-mesa-glx=20.0.8-0ubuntu1~18.04.1 \
-      libllvm-10-ocaml-dev=1:10.0.0-4ubuntu1~18.04.2 \
-      libltdl7=2.4.6-2 \
-      libsm6=2:1.2.2-1 \
-      libssl-dev=1.1.1-1ubuntu2.1~18.04.21 \
-      libxext-dev=2:1.3.3-1 \
-      libxrender1=1:0.9.10-1 \
-      llvm-10=1:10.0.0-4ubuntu1~18.04.2 \
-      llvm-10-dev=1:10.0.0-4ubuntu1~18.04.2 \
-      llvm-10-runtime=1:10.0.0-4ubuntu1~18.04.2 \
-      llvm-10-tools=1:10.0.0-4ubuntu1~18.04.2 \
-      locales=2.27-3ubuntu1.6 \
-      lsb-release=9.20170808ubuntu1 \
-      netcat=1.10-41.1 \
-      openssh-client=1:7.6p1-4ubuntu0.7 \
-      python3-dev=3.6.7-1~18.04 \
-      software-properties-common=0.96.24.32.20 \
-      tzdata=2022g-0ubuntu0.18.04 \
-      unzip=6.0-21ubuntu1.2 \
-      wget=1.19.4-1ubuntu2.2 \
+    apt-get update && apt-get install -y --no-install-recommends \
+    apt-utils=2.4.8 \
+    build-essential=12.9ubuntu3 \
+    ca-certificates=20211016ubuntu0.22.04.1 \
+    cmake=3.22.1-1ubuntu1.22.04.1 \
+    curl=7.81.0-1ubuntu1.7 \
+    gnupg2=2.2.27-3ubuntu2.1 \
+    gpg-agent=2.2.27-3ubuntu2.1 \
+    libaio1=0.3.112-13build1 \
+    libffi-dev=3.4.2-4 \
+    libltdl7=2.4.6-15build2 \
+    libsm6=2:1.2.3-1build2 \
+    libssl-dev=3.0.2-0ubuntu1.8 \
+    libxext-dev=2:1.3.4-1build1 \
+    libxrender1=1:0.9.10-1build4 \
+    locales=2.35-0ubuntu3.1 \
+    lsb-release=11.1.0ubuntu4 \
+    netcat=1.218-4ubuntu1 \
+    openssh-client=1:8.9p1-3ubuntu0.1 \
+    python3-dev=3.10.6-1~22.04 \
+    python3-distutils-extra=2.45 \
+    python3-distutils=3.10.6-1~22.04 \
+    python3-pip=22.0.2+dfsg-1ubuntu0.1 \
+    python3=3.10.6-1~22.04 \
+    software-properties-common=0.99.22.5 \
+    tzdata=2022g-0ubuntu0.22.04.1 \
+    unzip=6.0-26ubuntu3.1 \
+    wget=1.21.2-2ubuntu1 \
     && \
     # ==================================================================
     # Set locale
@@ -71,30 +70,23 @@ RUN \
     echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
     locale-gen && \
     # ==================================================================
-    # python, git
+    # Set Python3.10 as default
     # ------------------------------------------------------------------
-    add-apt-repository --yes --no-update ppa:deadsnakes/ppa && \
-    add-apt-repository --yes --no-update ppa:git-core/ppa && \
-    apt-get update &&  apt-get install -y --no-install-recommends -qq \
-    git=1:2.39.2-0ppa1~ubuntu18.04.1 \
-    python3.9=3.9.16-1+bionic1 \
-    python3.9-dev=3.9.16-1+bionic1 \
-    python3.9-distutils=3.9.16-1+bionic1 \
-    python3-distutils-extra=2.41ubuntu1 \
-    python3-pip=9.0.1-2.3~ubuntu1.18.04.6 && \
+    update-alternatives --install /usr/local/bin/python python /usr/bin/python3.10 1 && \
+    update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 1 && \
+    update-alternatives --install /usr/bin/python3-config python3-config /usr/bin/python3.10-config 1 && \
     # ==================================================================
-    # Set Python3.9 as default
+    # git
     # ------------------------------------------------------------------
-    update-alternatives --install /usr/local/bin/python python /usr/bin/python3.9 1 && \
-    update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.9 1 && \
-    update-alternatives --install /usr/bin/python3-config python3-config /usr/bin/python3.9-config 1 && \
+    add-apt-repository --yes ppa:git-core/ppa && \
+    apt-get install -y --no-install-recommends git=1:2.39.2-0ppa1~ubuntu22.04.1 && \
     # ==================================================================
     # nodejs
     # ------------------------------------------------------------------
     curl -fsSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | gpg --dearmor | tee /usr/share/keyrings/nodesource.gpg >/dev/null && \
     echo "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_16.x $(lsb_release -s -c) main" |tee /etc/apt/sources.list.d/nodesource.list && \
     echo "deb-src [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_16.x $(lsb_release -s -c) main" | tee -a /etc/apt/sources.list.d/nodesource.list && \
-    apt-get update && apt-get install -y --no-install-recommends -qq nodejs=16.19.1-deb-1nodesource1 && \
+    apt-get update && apt-get install -y --no-install-recommends nodejs=16.19.1-deb-1nodesource1 && \
     # ==================================================================
     # golang
     # ------------------------------------------------------------------
@@ -105,17 +97,16 @@ RUN \
     # clean up
     # ------------------------------------------------------------------
     apt-get clean && apt-get autoremove && \
-    rm -rf /var/lib/apt/lists/* /etc/apt/sources.list.d/nodesource.list
+    rm -rf /var/lib/apt/lists/*
 
 # ==================================================================
 # python libraries
 # ------------------------------------------------------------------
 RUN python -m pip --no-cache-dir install --upgrade \
-    pip==23.0.1 \
     setuptools==67.2.0 \
     wheel==0.38.4 \
     && \
-    python -m pip --no-cache-dir install --upgrade --ignore-installed \
+    python -m pip --no-cache-dir install --upgrade \
     pycrypto==2.6.1 \
     future==0.18.3 \
     notebook==6.5.2 \
@@ -123,9 +114,9 @@ RUN python -m pip --no-cache-dir install --upgrade \
     jupyterlab==3.6.1 \
     pipenv==2023.2.4
 
-# # ==================================================================
-# # Install tools
-# # ------------------------------------------------------------------
+# ==================================================================
+# Install tools
+# ------------------------------------------------------------------
 RUN \
     # protoc compiler
     curl -sLO "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip" && \
@@ -145,17 +136,17 @@ RUN \
     curl -sL -o /usr/local/bin/cml "https://github.com/iterative/cml/releases/download/v${CML_VERSION}/cml-linux-x64" && \
     chmod +x /usr/local/bin/cml
 
-# # ==================================================================
-# # config & cleanup
-# # ------------------------------------------------------------------
+# ==================================================================
+# config & cleanup
+# ------------------------------------------------------------------
 RUN ldconfig && \
     apt-get clean && \
     apt-get autoremove && \
     rm -rf /var/lib/apt/lists/* /tmp/* ~/*
 
-# # ==================================================================
-# # Command
-# # ------------------------------------------------------------------
+# ==================================================================
+# Command
+# ------------------------------------------------------------------
 WORKDIR /home/${NB_USER}
 
 USER ${NB_USER}
