@@ -9,7 +9,7 @@ ARG PIP_TARGET_FOLDER=/kernel/lib/python/site-packages
 ARG APT_INSTALL="apt-get install -y --no-install-recommends"
 ARG PIP_INSTALL="python -m pip --no-cache-dir install --upgrade"
 ARG PROTOC_VERSION=3.19.4
-ARG KST_CLI_VERSION=1.0-alpha.4
+ARG KST_CLI_VERSION=2.1.0
 ENV LANG=C.UTF-8
 ENV KERNEL_LANGUAGE=python
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
