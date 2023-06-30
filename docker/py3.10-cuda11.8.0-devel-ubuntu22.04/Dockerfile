@@ -44,6 +44,7 @@ RUN \
       ca-certificates=20211016ubuntu0.22.04.1 \
       cmake=3.22.1-1ubuntu1.22.04.1 \
       curl=7.81.0-1ubuntu1.10 \
+      ffmpeg=7:4.4.2-0ubuntu0.22.04.1 \
       gnupg2=2.2.27-3ubuntu2.1 \
       gpg-agent=2.2.27-3ubuntu2.1 \
       libaio1=0.3.112-13build1 \
