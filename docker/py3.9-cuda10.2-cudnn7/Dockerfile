@@ -41,17 +41,20 @@ RUN \
     apt-get update && apt-get install -y --no-install-recommends -qq \
       apt-utils=1.6.17 \
       build-essential=12.4ubuntu1 \
-      ca-certificates=20211016ubuntu0.18.04.1 \
+      ca-certificates=20230311ubuntu0.18.04.1 \
       cmake=3.10.2-1ubuntu2.18.04.2 \
       curl=7.58.0-2ubuntu3.24 \
       libaio1=0.3.110-5ubuntu0.1 \
+      freeglut3-dev=2.8.1-3 \
       gnupg=2.2.4-1ubuntu1.6 \
       libffi-dev=3.2.1-8 \
       libgl1-mesa-glx=20.0.8-0ubuntu1~18.04.1 \
+      libgles2-mesa-dev=20.0.8-0ubuntu1~18.04.1 \
+      libglfw3-dev=3.2.1-1 \
       libllvm-10-ocaml-dev=1:10.0.0-4ubuntu1~18.04.2 \
       libltdl7=2.4.6-2 \
       libsm6=2:1.2.2-1 \
-      libssl-dev=1.1.1-1ubuntu2.1~18.04.22 \
+      libssl-dev=1.1.1-1ubuntu2.1~18.04.23 \
       libxext-dev=2:1.3.3-1 \
       libxrender1=1:0.9.10-1 \
       llvm-10=1:10.0.0-4ubuntu1~18.04.2 \
@@ -63,7 +66,7 @@ RUN \
       netcat=1.10-41.1 \
       openssh-client=1:7.6p1-4ubuntu0.7 \
       python3-dev=3.6.7-1~18.04 \
-      software-properties-common=0.96.24.32.20 \
+      software-properties-common=0.96.24.32.22 \
       tzdata=2023c-0ubuntu0.18.04 \
       unzip=6.0-21ubuntu1.2 \
       wget=1.19.4-1ubuntu2.2 \
@@ -81,7 +84,7 @@ RUN \
     # hadolint ignore=DL3008
     apt-get update &&  apt-get install -y --no-install-recommends -qq \
     git \
-    python3.9 \ 
+    python3.9 \
     python3.9-dev \
     python3.9-distutils \
     python3-distutils-extra \
