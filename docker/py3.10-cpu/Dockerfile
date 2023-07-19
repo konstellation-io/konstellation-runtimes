@@ -42,15 +42,18 @@ RUN \
     apt-get update && apt-get install -y --no-install-recommends \
     apt-utils=2.4.9 \
     build-essential=12.9ubuntu3 \
-    ca-certificates=20211016ubuntu0.22.04.1 \
+    ca-certificates=20230311ubuntu0.22.04.1 \
     cmake=3.22.1-1ubuntu1.22.04.1 \
     curl=7.81.0-1ubuntu1.10 \
+    freeglut3-dev=2.8.1-6 \
     gpg-agent=2.2.27-3ubuntu2.1 \
     libaio1=0.3.112-13build1 \
     libffi-dev=3.4.2-4 \
+    libgles2-mesa-dev=22.0.1-1ubuntu2 \
+    libglfw3-dev=3.3.6-1 \
     libltdl7=2.4.6-15build2 \
     libsm6=2:1.2.3-1build2 \
-    libssl-dev=3.0.2-0ubuntu1.9 \
+    libssl-dev=3.0.2-0ubuntu1.10 \
     libxext-dev=2:1.3.4-1build1 \
     libxrender1=1:0.9.10-1build4 \
     locales=2.35-0ubuntu3.1 \
@@ -60,10 +63,11 @@ RUN \
     python3-dev=3.10.6-1~22.04 \
     python3-distutils-extra=2.45 \
     python3-distutils=3.10.6-1~22.04 \
-    python3-pip=22.0.2+dfsg-1ubuntu0.2 \
+    python3-pip=22.0.2+dfsg-1ubuntu0.3 \
+    python3-software-properties=0.99.22 \
     python3=3.10.6-1~22.04 \
-    software-properties-common=0.99.22.6 \
-    tzdata=2023c-0ubuntu0.22.04.1 \
+    software-properties-common=0.99.22 \
+    tzdata=2023c-0ubuntu0.22.04.0 \
     unzip=6.0-26ubuntu3.1 \
     wget=1.21.2-2ubuntu1 \
     && \
@@ -90,7 +94,7 @@ RUN \
     curl -fsSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | gpg --dearmor | tee /usr/share/keyrings/nodesource.gpg >/dev/null && \
     echo "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_16.x $(lsb_release -s -c) main" |tee /etc/apt/sources.list.d/nodesource.list && \
     echo "deb-src [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_16.x $(lsb_release -s -c) main" | tee -a /etc/apt/sources.list.d/nodesource.list && \
-    apt-get update && apt-get install -y --no-install-recommends nodejs=16.20.0-deb-1nodesource1 && \
+    apt-get update && apt-get install -y --no-install-recommends nodejs=16.20.1-deb-1nodesource1 && \
     # ==================================================================
     # golang
     # ------------------------------------------------------------------
