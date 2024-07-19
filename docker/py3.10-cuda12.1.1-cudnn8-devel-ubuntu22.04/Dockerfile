@@ -1,5 +1,5 @@
 # FROM nvidia/cuda:12.1.1-cudnn8-devel-ubuntu22.04
-FROM nvidia/cuda:12.1.1-cudnn8-devel-ubuntu22.04@sha256:217134b60289ced62b47463be32584329baf35cb55a9ccda6626b91bd59803be 
+FROM nvidia/cuda@sha256:217134b60289ced62b47463be32584329baf35cb55a9ccda6626b91bd59803be 
 #checkov:skip=CKV_DOCKER_2: "Ensure that HEALTHCHECK instructions have been added to container images"
 
 # OCI Labels will be added using GitHub Actions
@@ -14,7 +14,6 @@ ARG MINIO_CLIENT_VERSION=mc.RELEASE.2023-01-28T20-29-38Z
 ARG CML_VERSION=0.18.21
 ARG GOLANG_VERSION=1.20.1
 ARG DEBIAN_FRONTEND=noninteractive
-ARG COLMAP_VERSION=3.9.1
 
 ENV LANG=C.UTF-8
 ENV PATH=/home/${NB_USER}/.local/bin:/usr/local/go/bin:$PATH
@@ -48,56 +47,36 @@ RUN \
       curl \
       ffmpeg \
       freeglut3-dev \
-      gcc-10 \
-      g++-10 \
       gnupg2 \
       gpg-agent \
       libaio1 \
-      libboost-program-options-dev \
-      libboost-filesystem-dev \
-      libboost-graph-dev \
-      libboost-system-dev \
-      libeigen3-dev \
       libffi-dev \
-      libflann-dev \
-      libfreeimage-dev \
-      libceres-dev \ 
-      libcgal-dev \
       libgl1-mesa-glx \
-      libgles2-mesa-dev \ 
-      libglew-dev \
+      libgles2-mesa-dev \
       libglfw3-dev \
-      libgoogle-glog-dev \
-      libgtest-dev \
       libllvm-15-ocaml-dev \
       libltdl7 \
-      libmetis-dev \
-      libqt5opengl5-dev \
-      libsqlite3-dev \
       libsm6 \
       libssl-dev \
       libxext-dev \
       libxrender1 \
       llvm-15 \
-      llvm-15 \
-      llvm-15 \
+      llvm-15-dev \
+      llvm-15-runtime \
       llvm-15-tools \
       locales \
       lsb-release \
       netcat \
-      ninja-build \
       openssh-client \
       python3-dev \
       python3-distutils-extra \
       python3-distutils \
       python3-pip \
       python3 \
-      qtbase5-dev \
       software-properties-common \
       tzdata \
       unzip \
       wget \
-      xvfb \
     && \
     # ==================================================================
     # Set locale
@@ -173,19 +152,6 @@ RUN \
     # cml
     curl -sL -o /usr/local/bin/cml "https://github.com/iterative/cml/releases/download/v${CML_VERSION}/cml-linux-x64" && \
     chmod +x /usr/local/bin/cml
-
-RUN \
-   # Compile and install COLMAP
-   git clone --branch "${COLMAP_VERSION}" --depth=1 https://github.com/colmap/colmap.git && \
-   cd colmap && \
-   mkdir build && \
-   cd build && \
-   export CC=/usr/bin/gcc-10 && \
-   export CXX=/usr/bin/g++-10 && \
-   export CUDAHOSTCXX=/usr/bin/g++-10 && \
-   cmake .. -GNinja -DCUDA_ENABLED=ON -DCMAKE_CUDA_ARCHITECTURES="70;72;75;80;86" && \
-   ninja && \
-   ninja install
 
 # # ==================================================================
 # # config & cleanup
