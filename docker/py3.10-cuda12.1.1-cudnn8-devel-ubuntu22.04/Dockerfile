@@ -1,5 +1,5 @@
 # FROM nvidia/cuda:12.1.1-cudnn8-devel-ubuntu22.04
-FROM nvidia/cuda@sha256:217134b60289ced62b47463be32584329baf35cb55a9ccda6626b91bd59803be 
+FROM nvidia/cuda@sha256:21196d81f56b48dbee70494d5f10322e1a77cc47ffe202a3bf68eab81533c20f
 #checkov:skip=CKV_DOCKER_2: "Ensure that HEALTHCHECK instructions have been added to container images"
 
 # OCI Labels will be added using GitHub Actions
