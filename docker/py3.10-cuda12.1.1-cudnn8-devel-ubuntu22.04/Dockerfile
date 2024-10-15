@@ -18,6 +18,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 ENV LANG=C.UTF-8
 ENV PATH=/home/${NB_USER}/.local/bin:/usr/local/go/bin:$PATH
 ENV PIPENV_VENV_IN_PROJECT=1
+ENV CUDA_DRIVER=550
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -26,12 +27,19 @@ USER root
 WORKDIR /tmp
 
 RUN \
+    apt update && \
+    apt install cuda-drivers-${CUDA_DRIVER} -y && \
     rm -f /etc/apt/sources.list.d/cuda-ubuntu2204-x86_64.list && apt clean && \
     # ==================================================================
     # Create NB_USER user and group
     # ------------------------------------------------------------------
     groupadd -g "${NB_GID}" "${NB_USER}" && \
     useradd -l -m -s /bin/bash -N -g "${NB_GID}" -u "${NB_UID}" "${NB_USER}" && \
+   # Adding support for nvidia drivers ${CUDA_DRIVER}
+    ln -sf /usr/lib/x86_64-linux-gnu/libcuda.so.1 /usr/local/cuda-12.1/compat/libcuda.so.1 && \
+    ln -sf /usr/lib/x86_64-linux-gnu/libcudadebugger.so.1 /usr/local/cuda-12.1/compat/libcudadebugger.so.1 && \
+    ln -sf /usr/lib/x86_64-linux-gnu/libnvidia-ptxjitcompiler.so.1 /usr/local/cuda-12.1/compat/libnvidia-ptxjitcompiler.so.1 && \
+    ln -sf /usr/lib/x86_64-linux-gnu/libnvidia-nvvm.so.4 /usr/local/cuda-12.1/compat/libnvidia-nvvm.so.4 && \
     # ==================================================================
     # OS dependencies
     # ------------------------------------------------------------------
