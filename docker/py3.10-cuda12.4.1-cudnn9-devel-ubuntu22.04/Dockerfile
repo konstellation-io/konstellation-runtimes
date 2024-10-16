@@ -1,5 +1,5 @@
-# FROM nvidia/cuda:12.1.1-cudnn8-devel-ubuntu22.04
-FROM nvidia/cuda@sha256:21196d81f56b48dbee70494d5f10322e1a77cc47ffe202a3bf68eab81533c20f
+# FROM nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04
+FROM nvidia/cuda@sha256:622e78a1d02c0f90ed900e3985d6c975d8e2dc9ee5e61643aed587dcf9129f42
 #checkov:skip=CKV_DOCKER_2: "Ensure that HEALTHCHECK instructions have been added to container images"
 
 # OCI Labels will be added using GitHub Actions
@@ -18,8 +18,6 @@ ARG DEBIAN_FRONTEND=noninteractive
 ENV LANG=C.UTF-8
 ENV PATH=/home/${NB_USER}/.local/bin:/usr/local/go/bin:$PATH
 ENV PIPENV_VENV_IN_PROJECT=1
-ENV CUDA_DRIVER=550
-ENV CUDA_DRIVER_PACKAGE_VERSION=550.54.15
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -28,33 +26,12 @@ USER root
 WORKDIR /tmp
 
 RUN \
-    apt-get update && \
-    apt-get install -y --no-install-recommends -qq cuda-drivers-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-1 \
-        nvidia-driver-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-0ubuntu1 \
-        libnvidia-gl-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-0ubuntu1 \
-        nvidia-dkms-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-0ubuntu1 \
-        nvidia-kernel-common-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-0ubuntu1 \
-        nvidia-kernel-source-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-0ubuntu1 \
-        libnvidia-compute-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-0ubuntu1 \
-        libnvidia-extra-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-0ubuntu1 \
-        nvidia-compute-utils-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-0ubuntu1 \
-        libnvidia-decode-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-0ubuntu1 \
-        libnvidia-encode-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-0ubuntu1 \
-        nvidia-utils-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-0ubuntu1 \
-        xserver-xorg-video-nvidia-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-0ubuntu1 \
-        libnvidia-cfg1-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-0ubuntu1 \
-        libnvidia-fbc1-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-0ubuntu1 && \
     rm -f /etc/apt/sources.list.d/cuda-ubuntu2204-x86_64.list && apt-get clean && \
     # ==================================================================
     # Create NB_USER user and group
     # ------------------------------------------------------------------
     groupadd -g "${NB_GID}" "${NB_USER}" && \
     useradd -l -m -s /bin/bash -N -g "${NB_GID}" -u "${NB_UID}" "${NB_USER}" && \
-   # Adding support for nvidia drivers ${CUDA_DRIVER}
-    ln -sf /usr/lib/x86_64-linux-gnu/libcuda.so.1 /usr/local/cuda-12.1/compat/libcuda.so.1 && \
-    ln -sf /usr/lib/x86_64-linux-gnu/libcudadebugger.so.1 /usr/local/cuda-12.1/compat/libcudadebugger.so.1 && \
-    ln -sf /usr/lib/x86_64-linux-gnu/libnvidia-ptxjitcompiler.so.1 /usr/local/cuda-12.1/compat/libnvidia-ptxjitcompiler.so.1 && \
-    ln -sf /usr/lib/x86_64-linux-gnu/libnvidia-nvvm.so.4 /usr/local/cuda-12.1/compat/libnvidia-nvvm.so.4 && \
     # ==================================================================
     # OS dependencies
     # ------------------------------------------------------------------
