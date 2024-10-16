@@ -19,6 +19,8 @@ ENV LANG=C.UTF-8
 ENV PATH=/home/${NB_USER}/.local/bin:/usr/local/go/bin:$PATH
 ENV PIPENV_VENV_IN_PROJECT=1
 ENV CUDA_DRIVER=550
+ENV CUDA_DRIVER_PACKAGE_VERSION=550.54.15
+
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -28,7 +30,21 @@ WORKDIR /tmp
 
 RUN \
     apt update && \
-    apt install cuda-drivers-${CUDA_DRIVER} -y && \
+    apt-get install -y --no-install-recommends -qq cuda-drivers-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-1 \
+        nvidia-driver-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-0ubuntu1 \
+        libnvidia-gl-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-0ubuntu1 \
+        nvidia-dkms-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-0ubuntu1 \
+        nvidia-kernel-common-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-0ubuntu1 \
+        nvidia-kernel-source-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-0ubuntu1 \
+        libnvidia-compute-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-0ubuntu1 \
+        libnvidia-extra-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-0ubuntu1 \
+        nvidia-compute-utils-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-0ubuntu1 \
+        libnvidia-decode-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-0ubuntu1 \
+        libnvidia-encode-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-0ubuntu1 \
+        nvidia-utils-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-0ubuntu1 \
+        xserver-xorg-video-nvidia-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-0ubuntu1 \
+        libnvidia-cfg1-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-0ubuntu1 \
+        libnvidia-fbc1-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-0ubuntu1 && \
     rm -rf /etc/apt/sources.list.d/cuda.list /etc/apt/sources.list.d/nvidia-ml.list && \
     # ==================================================================
     # Create NB_USER user and group
