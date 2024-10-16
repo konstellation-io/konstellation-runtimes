@@ -29,7 +29,7 @@ USER root
 WORKDIR /tmp
 
 RUN \
-    apt update && \
+    apt-get update && \
     apt-get install -y --no-install-recommends -qq cuda-drivers-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-1 \
         nvidia-driver-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-0ubuntu1 \
         libnvidia-gl-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-0ubuntu1 \
@@ -60,7 +60,7 @@ RUN \
     # OS dependencies
     # ------------------------------------------------------------------
     # Update cuda keyring
-    apt update && apt install gnupg2 -y && \
+    apt-get update && apt install gnupg2 -y && \
     apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/3bf863cc.pub && \
     # Install dependencies
     apt-get update && apt-get install -y --no-install-recommends -qq \

@@ -28,8 +28,8 @@ USER root
 WORKDIR /tmp
 
 RUN \
-    apt update && \
-    apt install -y --no-install-recommends -qq cuda-drivers-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-1 \
+    apt-get update && \
+    apt-get install -y --no-install-recommends -qq cuda-drivers-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-1 \
         nvidia-driver-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-0ubuntu1 \
         libnvidia-gl-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-0ubuntu1 \
         nvidia-dkms-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-0ubuntu1 \
