@@ -3,18 +3,27 @@ name: Publish Docker image
 on:
   push:
     tags:
-      - "**"
+      - "*"
 
 jobs:
   build-and-push-image:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+      attestations: write
+
     outputs:
       image_base_tag: ${{ steps.tag-folder.outputs.image_base_tag }}
       image_tag: ${{ steps.tag-folder.outputs.image_tag }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v3
         with:
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Get image tag and Dockerfile folder
@@ -34,66 +43,103 @@ jobs:
           echo "image_tag=${IMAGE_TAG}" >> ${GITHUB_OUTPUT}
 
       - name: Install Cosign
-        uses: sigstore/cosign-installer@main
+        uses: sigstore/cosign-installer@v3
         with:
-          cosign-release: "v1.13.1"
+          cosign-release: "v2.4.1"
 
       - name: Install Syft
-        uses: anchore/sbom-action/download-syft@422cb34a0f8b599678c41b21163ea6088edb2624 # v0.14.1
+        uses: anchore/sbom-action/download-syft@fc46e51fd3cb168ffb36c6d1915723c47db58abb # v0.17.7
         with:
-          syft-version: v0.72.0
+          syft-version: "v1.16.0"
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
 
-      - name: Login to DockerHub Registry
-        uses: docker/login-action@v2
+      - name: Cache Docker layers
+        uses: actions/cache@v4
         with:
-          username: ${{ secrets.docker_username }}
-          password: ${{ secrets.docker_token }}
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Log in to the GHCR registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Prepare Docker image metadata
         id: meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
-          images: "docker.io/konstellation/kdl-py:${{ steps.tag-folder.outputs.image_base_tag }}-${{ steps.tag-folder.outputs.image_tag }}"
+          images: |
+            konstellation/kdl-py
+            ghcr.io/${{ github.repository }}/kdl-py
           flavor: latest=auto
           tags: |
             type=semver,pattern={{version}},value=${{ steps.tag-folder.outputs.image_base_tag }}
             type=semver,pattern={{version}},value=${{ steps.tag-folder.outputs.image_base_tag }}-${{ steps.tag-folder.outputs.image_tag }}
           labels: |
+            org.opencontainers.image.maintainer=Intelygenz - Konstellation Team
+            org.opencontainers.image.title=kdl-py-${{ steps.tag-folder.outputs.image_base_tag }}-${{ steps.tag-folder.outputs.image_tag }}
+            org.opencontainers.image.vendor=Konstellation
             org.opencontainers.image.version=${{ steps.tag-folder.outputs.image_base_tag }}-${{ steps.tag-folder.outputs.image_tag }}
 
       - name: Push to Docker Hub
         id: build_and_push
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v6
         with:
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
           context: ./docker/${{ steps.tag-folder.outputs.dockerfile_folder }}
           file: ./docker/${{ steps.tag-folder.outputs.dockerfile_folder }}/Dockerfile
+          labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64
           push: true
-          tags: |
-            konstellation/kdl-py:${{ steps.tag-folder.outputs.image_base_tag }}
-            konstellation/kdl-py:${{ steps.tag-folder.outputs.image_base_tag }}-${{ steps.tag-folder.outputs.image_tag }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          sbom: true
+          tags: ${{ steps.meta.outputs.tags }}
 
       - name: Cosign sign and push signature to registry and verify
         env:
-          COSIGN_PRIVATE_KEY: ${{secrets.COSIGN_PRIVATE_KEY}}
-          COSIGN_PUBLIC_KEY: ${{secrets.COSIGN_PUBLIC_KEY}}
-          COSIGN_PASSWORD: ${{secrets.COSIGN_PASSWORD}}
+          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
         run: |
-          cosign sign --key env://COSIGN_PRIVATE_KEY docker.io/konstellation/kdl-py@${{ steps.build_and_push.outputs.digest }}
-          cosign verify --key env://COSIGN_PUBLIC_KEY docker.io/konstellation/kdl-py@${{ steps.build_and_push.outputs.digest }}
+          # sign registry
+          cosign sign --key env://COSIGN_PRIVATE_KEY konstellation/kdl-py@${{ steps.build_and_push.outputs.digest }}
+          cosign sign --key env://COSIGN_PRIVATE_KEY ghcr.io/${{ github.repository }}/kdl-py@${{ steps.build_and_push.outputs.digest }}
+
+          # verify
+          cosign verify --key cosign.pub konstellation/kdl-py@${{ steps.build_and_push.outputs.digest }}
+          cosign verify --key cosign.pub ghcr.io/${{ github.repository }}/kdl-py@${{ steps.build_and_push.outputs.digest }}
+
+      - name: Update Docker registry description
+        uses: peter-evans/dockerhub-description@v4
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+          repository: konstellation/kdl-py
+
+      - name: Generate artifact
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-name: ghcr.io/${{ github.repository }}/kdl-py
+          subject-digest: ${{ steps.build_and_push.outputs.digest }}
+          push-to-registry: true
 
       - name: Syft generate SBoM
         run: |
-          syft packages docker.io/konstellation/kdl-py@${{ steps.build_and_push.outputs.digest }}
+          syft packages konstellation/kdl-py@${{ steps.build_and_push.outputs.digest }}
 
       - name: Grype scan SBoM
         id: scan
@@ -103,13 +149,12 @@ jobs:
           fail-build: false
           # severity-cutoff: critical
 
-      # The file cannot be uploaded to the Github Advanced Security Code Scanning in private repositories
-      # - name: Upload vulnerabilities scan report
-      #   uses: github/codeql-action/upload-sarif@v2
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.PAT }}
-      #   with:
-      #     sarif_file: ${{ steps.scan.outputs.sarif }}
+      - name: Upload vulnerabilities scan report
+        uses: github/codeql-action/upload-sarif@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}
+        with:
+          sarif_file: ${{ steps.scan.outputs.sarif }}
 
       - name: Attach SBoM asset to release
         uses: svenstaro/upload-release-action@v2

@@ -47,7 +47,7 @@ Additional rules:
 
 ### Git Commit Messages
 
-> [!CRITICAL]
+> [!CAUTION]
 > If this approach is not followed, the automation won't upgrade the version and publish the changelog on the repo.
 
 * Based on [Angular commit guidelines](https://github.com/angular/angular.js/blob/master/DEVELOPERS.md#-git-commit-guidelines) for commits because [multi-semantic-release](https://github.com/qiwi/multi-semantic-release) is used, so commits that follow this message style could upgrade images version automatically.
