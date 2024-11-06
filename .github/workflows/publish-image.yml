@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
+      security-events: write
       contents: write
       packages: write
       id-token: write
@@ -42,15 +43,11 @@ jobs:
           echo "image_base_tag=${IMAGE_BASE_TAG}" >> ${GITHUB_OUTPUT}
           echo "image_tag=${IMAGE_TAG}" >> ${GITHUB_OUTPUT}
 
-      - name: Install Cosign
-        uses: sigstore/cosign-installer@v3
-        with:
-          cosign-release: "v2.4.1"
-
-      - name: Install Syft
-        uses: anchore/sbom-action/download-syft@fc46e51fd3cb168ffb36c6d1915723c47db58abb # v0.17.7
-        with:
-          syft-version: "v1.16.0"
+      # TODO: when enable Cosign, uncomment this step
+      # - name: Install Cosign
+      #   uses: sigstore/cosign-installer@v3
+      #   with:
+      #     cosign-release: "v2.4.1"
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -100,19 +97,6 @@ jobs:
           sbom: true
           tags: ${{ steps.meta.outputs.tags }}
 
-      - name: Cosign sign and push signature to registry and verify
-        env:
-          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
-          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
-        run: |
-          # sign registry
-          cosign sign -y --key env://COSIGN_PRIVATE_KEY konstellation/kdl-py@${{ steps.build_and_push.outputs.digest }}
-          cosign sign -y --key env://COSIGN_PRIVATE_KEY ghcr.io/${{ github.repository }}/kdl-py@${{ steps.build_and_push.outputs.digest }}
-
-          # verify
-          cosign verify --key cosign.pub konstellation/kdl-py@${{ steps.build_and_push.outputs.digest }}
-          cosign verify --key cosign.pub ghcr.io/${{ github.repository }}/kdl-py@${{ steps.build_and_push.outputs.digest }}
-
       - name: Update Docker registry description
         uses: peter-evans/dockerhub-description@v4
         with:
@@ -120,40 +104,51 @@ jobs:
           password: ${{ secrets.DOCKER_TOKEN }}
           repository: konstellation/kdl-py
 
-      - name: Generate artifact
-        uses: actions/attest-build-provenance@v1
-        with:
-          subject-name: ghcr.io/${{ github.repository }}/kdl-py
-          subject-digest: ${{ steps.build_and_push.outputs.digest }}
-          push-to-registry: true
+      # TODO:
+      #  * review cosign
+      #  * review grype scan create empty file
+      #  * when grype fixes we can uncomment reports
+      #
+      # - name: Cosign sign and push signature to registry and verify
+      #   env:
+      #     COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+      #     COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+      #   run: |
+      #     # sign registry
+      #     cosign sign -y --key env://COSIGN_PRIVATE_KEY konstellation/kdl-py@${{ steps.build_and_push.outputs.digest }}
+      #     cosign sign -y --key env://COSIGN_PRIVATE_KEY ghcr.io/${{ github.repository }}/kdl-py@${{ steps.build_and_push.outputs.digest }}
+      #     # verify
+      #     cosign verify --key cosign.pub konstellation/kdl-py@${{ steps.build_and_push.outputs.digest }}
+      #     cosign verify --key cosign.pub ghcr.io/${{ github.repository }}/kdl-py@${{ steps.build_and_push.outputs.digest }}
 
-      - name: Syft generate SBoM
-        run: |
-          syft packages konstellation/kdl-py@${{ steps.build_and_push.outputs.digest }}
+      - name: Get SBOM file
+        run:
+          docker buildx imagetools inspect konstellation/kdl-py:${{ steps.tag-folder.outputs.image_base_tag }}-${{ steps.tag-folder.outputs.image_tag }} --format "{{ json .SBOM }}" > sbom.spdx.json
 
       - name: Grype scan SBoM
         id: scan
-        uses: anchore/scan-action@v3
+        uses: anchore/scan-action@v5
         with:
-          sbom: ./sbom.syft.spdx.json
+          sbom: sbom.spdx.json
+          output-format: sarif
           fail-build: false
           # severity-cutoff: critical
 
+      - name: Attach vulnerabilities scan report asset to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.PAT }}
+          file: sbom.spdx.json
+          asset_name: sbom.spdx.json
+          tag: ${{ github.ref }}
+          overwrite: true
+
       - name: Upload vulnerabilities scan report
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
         with:
           sarif_file: ${{ steps.scan.outputs.sarif }}
-
-      - name: Attach SBoM asset to release
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.PAT }}
-          file: ./sbom.syft.spdx.json
-          asset_name: sbom.syft.spdx.json
-          tag: ${{ github.ref }}
-          overwrite: true
 
       - name: Attach vulnerabilities scan report asset to release
         uses: svenstaro/upload-release-action@v2
