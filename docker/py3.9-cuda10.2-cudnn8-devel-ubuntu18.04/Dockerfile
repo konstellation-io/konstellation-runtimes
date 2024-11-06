@@ -5,6 +5,7 @@ FROM nvidia/cuda@sha256:54eff7aa01217a1fb039cf5dbfa925a4bce2073b1742074c84dd83cf
 # OCI Labels will be added using GitHub Actions
 LABEL maintainer "Intelygenz - Konstellation Team"
 
+# Set build arguments
 ARG NB_USER="coder"
 ARG NB_UID="1000"
 ARG NB_GID="1000"
@@ -21,8 +22,8 @@ ENV PIPENV_VENV_IN_PROJECT=1
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
+# Switch to root and /tmp to do administrative tasks
 USER root
-
 WORKDIR /tmp
 
 RUN \
@@ -81,7 +82,7 @@ RUN \
     # hadolint ignore=DL3008
     apt-get update &&  apt-get install -y --no-install-recommends -qq \
     git \
-    python3.9 \ 
+    python3.9 \
     python3.9-dev \
     python3.9-distutils \
     python3-distutils-extra \
@@ -127,9 +128,9 @@ RUN python -m pip --no-cache-dir install --upgrade \
     jupyterlab==3.6.1 \
     pipenv==2023.2.4
 
-# # ==================================================================
-# # Install tools
-# # ------------------------------------------------------------------
+# ==================================================================
+# Install tools
+# ------------------------------------------------------------------
 RUN \
     # protoc compiler
     curl -sLO "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip" && \
@@ -149,17 +150,17 @@ RUN \
     curl -sL -o /usr/local/bin/cml "https://github.com/iterative/cml/releases/download/v${CML_VERSION}/cml-linux-x64" && \
     chmod +x /usr/local/bin/cml
 
-# # ==================================================================
-# # config & cleanup
-# # ------------------------------------------------------------------
+# ==================================================================
+# config & cleanup
+# ------------------------------------------------------------------
 RUN ldconfig && \
     apt-get clean && \
     apt-get autoremove && \
     rm -rf /var/lib/apt/lists/* /tmp/* ~/*
 
-# # ==================================================================
-# # Command
-# # ------------------------------------------------------------------
+# ==================================================================
+# Command
+# ------------------------------------------------------------------
 WORKDIR /home/${NB_USER}
 
 USER ${NB_USER}

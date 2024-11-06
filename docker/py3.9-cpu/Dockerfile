@@ -5,6 +5,7 @@ FROM ubuntu@sha256:fdd3c9372c19afa928f99afde58f0f80a008ebb695a8c5ee37de5adb7feb4
 # OCI Labels will be added using Github Actions
 LABEL maintainer "Intelygenz - Konstellation Team"
 
+# Set build arguments
 ARG NB_USER="coder"
 ARG NB_UID="1000"
 ARG NB_GID="1000"
@@ -21,8 +22,8 @@ ENV PIPENV_VENV_IN_PROJECT=1
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
+# Switch to root and /tmp to do administrative tasks
 USER root
-
 WORKDIR /tmp
 
 RUN \
