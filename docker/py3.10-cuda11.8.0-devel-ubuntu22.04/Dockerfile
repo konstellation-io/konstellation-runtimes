@@ -3,7 +3,7 @@ FROM nvidia/cuda@sha256:8f9dd0d09d3ad3900357a1cf7f887888b5b74056636cd6ef03c160c3
 #checkov:skip=CKV_DOCKER_2: "Ensure that HEALTHCHECK instructions have been added to container images"
 
 # OCI Labels will be added using GitHub Actions
-LABEL maintainer "Intelygenz - Konstellation Team"
+LABEL maintainer="Intelygenz - Konstellation Team"
 
 # Set build arguments
 ARG NB_USER="coder"
@@ -19,8 +19,10 @@ ARG DEBIAN_FRONTEND=noninteractive
 ENV LANG=C.UTF-8
 ENV PATH=/home/${NB_USER}/.local/bin:/usr/local/go/bin:$PATH
 ENV PIPENV_VENV_IN_PROJECT=1
-ENV CUDA_DRIVER=550
-ENV CUDA_DRIVER_PACKAGE_VERSION=550.54.15
+# DELL (LEGACY): 515 | MAAS: 550
+ENV CUDA_DRIVER=515
+# DELL (LEGACY): 515.43.04 | MAAS: 550.54.15
+ENV CUDA_DRIVER_PACKAGE_VERSION=515.43.04
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -44,7 +46,8 @@ RUN \
         nvidia-utils-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-0ubuntu1 \
         xserver-xorg-video-nvidia-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-0ubuntu1 \
         libnvidia-cfg1-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-0ubuntu1 \
-        libnvidia-fbc1-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-0ubuntu1 && \
+        libnvidia-fbc1-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-0ubuntu1 \
+        libnvidia-common-${CUDA_DRIVER}=${CUDA_DRIVER_PACKAGE_VERSION}-0ubuntu1 && \
     rm -rf /etc/apt/sources.list.d/cuda.list /etc/apt/sources.list.d/nvidia-ml.list && \
     # ==================================================================
     # Create NB_USER user and group
@@ -95,7 +98,7 @@ RUN \
       python3-distutils-extra \
       python3-distutils \
       python3-pip \
-      python3\
+      python3 \
       software-properties-common \
       tzdata \
       unzip \
