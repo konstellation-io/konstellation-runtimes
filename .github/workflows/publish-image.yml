@@ -88,8 +88,8 @@ jobs:
             ghcr.io/${{ github.repository }}/kdl-py
           flavor: latest=auto
           tags: |
-            type=semver,pattern={{version}},value=${{ steps.tag-folder.outputs.image_base_tag }}
-            type=semver,pattern={{version}},value=${{ steps.tag-folder.outputs.image_base_tag }}-${{ steps.tag-folder.outputs.image_tag }}
+            type=raw,value=${{ steps.tag-folder.outputs.image_base_tag }}
+            type=raw,value=${{ steps.tag-folder.outputs.image_base_tag }}-${{ steps.tag-folder.outputs.image_tag }}
           labels: |
             org.opencontainers.image.maintainer=Intelygenz - Konstellation Team
             org.opencontainers.image.title=kdl-py-${{ steps.tag-folder.outputs.image_base_tag }}-${{ steps.tag-folder.outputs.image_tag }}
