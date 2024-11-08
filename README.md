@@ -1,6 +1,6 @@
 # Konstellation Runtimes
 
-This repository contains the necessary files to build and deploy a **runtime** environment for data science and machine learning applications to be used in `KDL` and `KRE` projects. Aa **runtime** refers to a pre-configured containerized environment, equipped with the tools, libraries, and dependencies which data scientists need to develop, test and deploy models.
+This repository contains the necessary files to build and deploy a **runtime** environment for data science and machine learning applications to be used in `KDL` and `KRE` projects. A **runtime** refers to a pre-configured containerized environment, equipped with the tools, libraries, and dependencies which data scientists need to develop, test and deploy models.
 
 ## Table of contents
 
