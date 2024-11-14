@@ -142,9 +142,8 @@ RUN \
 # ------------------------------------------------------------------
 RUN python -m pip --no-cache-dir install --upgrade \
     pip==23.0.1 \
-    setuptools==67.2.0 \
-    wheel==0.38.4 \
-    && \
+    setuptools==75.5.0 \
+    wheel==0.38.4 && \
     python -m pip --no-cache-dir install --upgrade --ignore-installed \
     pycrypto==2.6.1 \
     future==0.18.3 \
