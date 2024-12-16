@@ -127,7 +127,7 @@ jobs:
 
       - name: Grype scan SBoM
         id: scan
-        uses: anchore/scan-action@v5
+        uses: anchore/scan-action@v6
         with:
           sbom: sbom.spdx.json
           output-format: sarif
